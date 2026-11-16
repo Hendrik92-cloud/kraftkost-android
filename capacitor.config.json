@@ -1,0 +1,16 @@
+{
+  "appId": "de.kraftkost.app",
+  "appName": "Kraftkost",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    },
+    "LocalNotifications": {
+      "iconColor": "#0E6B60"
+    }
+  }
+}

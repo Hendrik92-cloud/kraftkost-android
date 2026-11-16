@@ -1,0 +1,32 @@
+import { db } from './store.js';
+import { today } from './util.js';
+
+/** Zustand der Oberfläche, der nicht gespeichert wird. */
+export const S = { day: today(), tab: 'training', more: 'gewicht' };
+
+const renders = [];
+export const addRender = f => renders.push(f);
+export const renderAll = () => renders.forEach(f => { try { f(); } catch (e) { console.error(e); } });
+
+/** Knopf sperren, Hinweis zeigen, Aufgabe ausführen. */
+export async function busy(btn, hintEl, msg, fn) {
+  if (btn) btn.disabled = true;
+  if (hintEl && msg) hintEl.textContent = msg;
+  try { return await fn(); } finally { if (btn) btn.disabled = false; }
+}
+
+export const lastWeight = () => {
+  const k = [...db.weights].sort((a, b) => a.date.localeCompare(b.date));
+  return k.length ? k[k.length - 1].kg : null;
+};
+
+export const me = () => db.settings.household.find(p => p.id === 'ich') || db.settings.household[0];
+export const familyFactor = () => db.settings.household.reduce((s, p) => s + (Number(p.factor) || 0), 0) || 1;
+export const householdText = () => db.settings.household.map(p => {
+  const bits = [`${p.name}${p.kind === 'child' ? ` (Kind${p.age ? ', ' + p.age + ' Jahre' : ''})` : ''}: Portion ${String(p.factor).replace('.', ',')}`];
+  if (p.likes) bits.push('mag ' + p.likes);
+  if (p.dislikes) bits.push('mag nicht ' + p.dislikes);
+  return bits.join(', ');
+}).join('; ');
+
+export const defaultTrainDays = n => ({ 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 3, 4] })[n] || [0, 2, 4];

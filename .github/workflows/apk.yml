@@ -1,0 +1,75 @@
+name: APK bauen
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Abhängigkeiten installieren
+        run: npm install --no-audit --no-fund
+
+      - name: Web-Teil bauen
+        run: npm run build
+
+      - name: Android-Projekt erzeugen
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          npx cap add android
+          bash scripts/patch-android.sh
+          npx cap sync android
+
+      - name: Gleichbleibenden Signierschlüssel bereitstellen
+        run: |
+          if [ ! -f signing/debug.keystore ]; then
+            mkdir -p signing
+            keytool -genkeypair -keystore signing/debug.keystore -storepass android \
+              -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 \
+              -validity 20000 -dname "CN=Kraftkost"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add signing/debug.keystore
+            git commit -m "Signierschlüssel anlegen [skip ci]"
+            git push
+          fi
+          mkdir -p ~/.android
+          cp signing/debug.keystore ~/.android/debug.keystore
+
+      - name: APK bauen
+        run: cd android && ./gradlew assembleDebug --no-daemon
+
+      - name: APK umbenennen
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk Kraftkost.apk
+
+      - name: Als Release veröffentlichen
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Kraftkost ${{ github.run_number }}
+          body: "Zum Installieren Kraftkost.apk auf dem Handy herunterladen und öffnen."
+          files: Kraftkost.apk
+          make_latest: true

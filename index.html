@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0E6B60">
+<title>Kraftkost</title>
+<link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="brand">Kraft<span>kost</span></div>
+  <div class="daynav" id="daynav">
+    <button class="ghost icon" id="prevday" aria-label="Vorheriger Tag">‹</button>
+    <div id="daylabel">Heute</div>
+    <button class="ghost icon" id="nextday" aria-label="Nächster Tag">›</button>
+    <button class="ghost sm" id="todaybtn" hidden>Heute</button>
+  </div>
+</header>
+
+<main>
+<div class="notice" id="nokey" hidden>Für Pläne, Foto-Scan und Angebotssuche braucht die App deinen Claude-API-Schlüssel. <button type="button" class="sm" data-goto="einstellungen">Jetzt eintragen</button></div>
+
+<!-- TRAINING -->
+<section class="tab" id="tab-training">
+  <h2>Training</h2>
+  <div class="card" id="plan-view" hidden></div>
+  <div class="card" id="rest" hidden></div>
+  <form class="card" id="wform" autocomplete="off">
+    <div class="actions between"><h3>Übung eintragen</h3><button type="button" class="sm mic" id="w-mic" aria-label="Übung einsprechen">🎤 Sprechen</button></div>
+    <label for="w-ex">Übung<input id="w-ex" list="exlist" placeholder="z. B. Bankdrücken" required></label>
+    <datalist id="exlist"></datalist>
+    <p class="hint" id="w-hint"></p>
+    <div class="row">
+      <label for="w-sets">Sätze<input id="w-sets" type="number" inputmode="numeric" min="1" value="3"></label>
+      <label for="w-reps">Wdh.<input id="w-reps" type="number" inputmode="numeric" min="1" value="10"></label>
+      <label for="w-kg">Gewicht kg<input id="w-kg" inputmode="decimal" placeholder="0"></label>
+    </div>
+    <div class="actions"><button class="primary" type="submit">Eintragen</button></div>
+  </form>
+  <div class="stats" id="w-stats"></div>
+  <div id="w-list"></div>
+  <details class="card" id="plan-setup">
+    <summary id="plan-sum">Trainingsplan erstellen lassen</summary>
+    <form id="pform" class="stack" autocomplete="off">
+      <p class="small muted">Claude plant einen kompletten Zyklus fürs Studio mit Phasen, Erholungswoche und automatischer Steigerung. Der Wochen-Essensplan richtet sich danach.</p>
+      <div class="row">
+        <label for="p-goal">Ziel<select id="p-goal"><option>Muskelaufbau</option><option>Abnehmen und straffen</option><option>Kraft steigern</option><option>Fit und gesund bleiben</option></select></label>
+        <label for="p-days">Tage / Woche<select id="p-days"><option>2</option><option selected>3</option><option>4</option><option>5</option></select></label>
+      </div>
+      <div class="row">
+        <label for="p-level">Erfahrung<select id="p-level"><option>Einsteiger</option><option selected>Wiedereinsteiger</option><option>Fortgeschritten</option><option>Erfahren</option></select></label>
+        <label for="p-time">Zeit pro Einheit<select id="p-time"><option>45 min</option><option selected>60 min</option><option>75 min</option><option>90 min</option></select></label>
+      </div>
+      <label for="p-start">Start<input id="p-start" type="date"></label>
+      <label for="p-notes">Wünsche oder Einschränkungen<input id="p-notes" placeholder="z. B. Rücken schonen, viel Geräte"></label>
+      <div class="actions"><button class="primary" type="submit" id="p-go">Plan erstellen</button><span class="hint" id="p-hint"></span></div>
+    </form>
+  </details>
+</section>
+
+<!-- ESSEN -->
+<section class="tab" id="tab-essen" hidden>
+  <h2>Essen</h2>
+  <div class="card" id="m-summary"></div>
+  <form class="card" id="mform" autocomplete="off">
+    <h3>Mahlzeit erfassen</h3>
+    <div class="inputmic">
+      <label for="m-name">Was gab es?<input id="m-name" placeholder="z. B. 2 Brötchen mit Käse, Kaffee" required></label>
+      <button type="button" class="mic icon" id="m-mic" aria-label="Mahlzeit einsprechen">🎤</button>
+    </div>
+    <div class="three">
+      <button type="button" id="m-est">Schätzen</button>
+      <button type="button" id="m-photo">Teller-Foto</button>
+      <button type="button" id="m-bc">Barcode</button>
+    </div>
+    <p class="hint" id="m-hint"></p>
+    <div id="m-bcbox"></div>
+    <div id="m-parts"></div>
+    <div class="row">
+      <label for="m-kcal">kcal<input id="m-kcal" inputmode="decimal"></label>
+      <label for="m-p">Eiweiß g<input id="m-p" inputmode="decimal"></label>
+      <label for="m-c">Kohlenh. g<input id="m-c" inputmode="decimal"></label>
+      <label for="m-f">Fett g<input id="m-f" inputmode="decimal"></label>
+    </div>
+    <div class="row wide">
+      <label for="m-slot">Mahlzeit<select id="m-slot"><option>Frühstück</option><option>Mittag</option><option>Abend</option><option>Snack</option></select></label>
+      <div class="bottom"><button class="primary" type="submit">Eintragen</button></div>
+    </div>
+    <label class="plain" for="m-fav"><input type="checkbox" id="m-fav">Als Gericht merken</label>
+  </form>
+  <div id="m-list"></div>
+  <div class="card">
+    <div class="actions between"><h3>Tipp für heute</h3><button type="button" class="sm" id="m-tipbtn">Tipp holen</button></div>
+    <div id="m-tip"><p class="small muted">Claude schaut auf das, was du heute gegessen und trainiert hast, und gibt dir 2–3 Tipps für den Rest des Tages.</p></div>
+  </div>
+  <details class="card">
+    <summary id="m-dishes-sum">Meine Gerichte</summary>
+    <div id="m-dishes"></div>
+  </details>
+</section>
+
+<!-- WOCHENPLAN -->
+<section class="tab" id="tab-plan" hidden>
+  <h2>Wochenplan</h2>
+  <div class="card" id="mp-house"></div>
+  <div id="mp-view"></div>
+  <details class="card" id="mp-setup">
+    <summary id="mp-sum">Wochenplan erstellen lassen</summary>
+    <form id="mpform" class="stack" autocomplete="off">
+      <p class="small muted">Claude plant 7 Tage Familienessen: einmal kochen für alle, deine Portion passt zu deinem Training. Fixierte Gerichte bleiben beim Neuplanen erhalten.</p>
+      <div><div class="lbl">Trainingstage</div><div class="filter" id="mp-train"></div></div>
+      <div class="row">
+        <label for="mp-start">Ab<input id="mp-start" type="date"></label>
+        <label for="mp-meals">Mahlzeiten / Tag<select id="mp-meals"><option>3</option><option selected>4</option><option>5</option></select></label>
+      </div>
+      <label for="mp-effort">Aufwand<select id="mp-effort"><option>Schnell, bis 20 min</option><option selected>Normal, bis 40 min</option><option>Am Wochenende vorkochen</option></select></label>
+      <label for="mp-pref">Wünsche für diese Woche<input id="mp-pref" placeholder="z. B. 2× Fisch, einmal Pizza-Abend"></label>
+      <label class="plain" for="mp-offers"><input type="checkbox" id="mp-offers" checked>Aktuelle Angebote bevorzugen</label>
+      <div class="actions"><button class="primary" type="submit" id="mp-go">Wochenplan erstellen</button><span class="hint" id="mp-hint"></span></div>
+    </form>
+  </details>
+</section>
+
+<!-- EINKAUF -->
+<section class="tab" id="tab-einkauf" hidden>
+  <h2>Einkauf</h2>
+  <form class="card" id="sform" autocomplete="off">
+    <div class="inputmic">
+      <label for="s-name">Auf die Liste<input id="s-name" placeholder="z. B. Magerquark, Bananen"></label>
+      <button type="button" class="mic icon" id="s-mic" aria-label="Einkauf einsprechen">🎤</button>
+    </div>
+    <div class="actions"><button class="primary" type="submit">Hinzufügen</button><button type="button" class="ghost" id="s-clear">Erledigte entfernen</button></div>
+  </form>
+  <div id="s-list"></div>
+  <div class="card" id="s-compare" hidden></div>
+  <div class="card">
+    <div class="actions between"><h3>Angebote der Woche</h3><button type="button" class="sm" id="o-search">Angebote suchen</button></div>
+    <p class="small muted" id="o-meta"></p>
+    <div class="filter" id="o-filter"></div>
+    <div id="o-list"></div>
+  </div>
+</section>
+
+<!-- MEHR -->
+<section class="tab" id="tab-mehr" hidden>
+  <div class="filter seg" id="more-nav">
+    <button type="button" data-more="gewicht">Gewicht</button>
+    <button type="button" data-more="belege">Belege</button>
+    <button type="button" data-more="einstellungen">Einstellungen</button>
+  </div>
+
+  <div id="more-gewicht" class="stack">
+    <h2>Gewicht</h2>
+    <form class="card" id="kform" autocomplete="off">
+      <div class="row">
+        <label for="k-kg">Gewicht kg<input id="k-kg" inputmode="decimal" required></label>
+        <label for="k-date">Datum<input id="k-date" type="date"></label>
+        <div class="bottom"><button class="primary" type="submit">Speichern</button></div>
+      </div>
+    </form>
+    <div class="stats" id="k-stats"></div>
+    <div class="card chartbox" id="k-chart"></div>
+    <div id="k-list"></div>
+  </div>
+
+  <div id="more-belege" class="stack" hidden>
+    <h2>Belege</h2>
+    <button type="button" class="primary big" id="r-photo">Beleg fotografieren</button>
+    <div id="r-draft"></div>
+    <div class="stats" id="r-stats"></div>
+    <div class="filter" id="r-filter"></div>
+    <div id="r-list"></div>
+    <details class="card">
+      <summary>Export für die Steuererklärung</summary>
+      <div class="stack">
+        <label for="tx-year">Jahr<select id="tx-year"></select></label>
+        <div id="tx-sum"></div>
+        <div class="actions"><button type="button" id="tx-csv">Tabelle teilen (CSV)</button><button type="button" id="tx-zip">Mit Fotos teilen (ZIP)</button></div>
+        <p class="hint" id="tx-hint"></p>
+      </div>
+    </details>
+    <p class="small muted">Kassenbons auf Thermopapier verblassen. Das Foto hilft beim Wiederfinden, für Garantie und Finanzamt solltest du das Original trotzdem aufheben.</p>
+  </div>
+
+  <div id="more-einstellungen" class="stack" hidden>
+    <h2>Einstellungen</h2>
+    <form class="card" id="set-key" autocomplete="off">
+      <h3>Claude</h3>
+      <label for="st-key">API-Schlüssel<input id="st-key" type="password" placeholder="sk-ant-…" autocomplete="off"></label>
+      <p class="small muted">Den Schlüssel legst du unter console.anthropic.com an. Er bleibt nur auf diesem Handy und kommt nicht ins Backup. Abgerechnet wird nach Verbrauch.</p>
+      <details><summary>Modelle</summary>
+        <div class="row" style="margin-top:8px">
+          <label for="st-mq">Schnell<input id="st-mq"></label>
+          <label for="st-ms">Gründlich<input id="st-ms"></label>
+        </div>
+      </details>
+      <div class="actions"><button class="primary" type="submit">Speichern</button><button type="button" id="st-test">Verbindung testen</button><span class="hint" id="st-keyhint"></span></div>
+    </form>
+
+    <form class="card" id="set-goals" autocomplete="off">
+      <h3>Meine Tagesziele</h3>
+      <div class="row">
+        <label for="st-kcal">kcal pro Tag<input id="st-kcal" inputmode="numeric"></label>
+        <label for="st-prot">Eiweiß g<input id="st-prot" inputmode="numeric"></label>
+        <div class="bottom"><button type="submit">Speichern</button></div>
+      </div>
+      <p class="small muted">Leer lassen, dann schlägt Claude beim Wochenplan ein passendes Ziel vor.</p>
+    </form>
+
+    <div class="card">
+      <div class="actions between"><h3>Haushalt</h3><button type="button" class="sm" id="hh-add">Person dazu</button></div>
+      <p class="small muted">Alle essen dasselbe. Der Anteil bestimmt die Portion und die Einkaufsmengen.</p>
+      <div id="hh-list" class="stack"></div>
+    </div>
+
+    <div class="card">
+      <h3>Trainingszeiten</h3>
+      <div class="filter" id="st-days"></div>
+      <div class="row">
+        <label for="st-time">Uhrzeit<input id="st-time" type="time"></label>
+        <label for="st-dur">Dauer min<input id="st-dur" type="number" inputmode="numeric" min="15" step="15"></label>
+      </div>
+      <label class="plain" for="st-remind"><input type="checkbox" id="st-remind">Eine Stunde vorher erinnern</label>
+      <div class="actions"><button type="button" id="st-cal">In Kalender eintragen</button><button type="button" id="st-alarm">Wecker stellen</button></div>
+      <p class="hint" id="st-timehint"></p>
+    </div>
+
+    <form class="card" id="set-plz" autocomplete="off">
+      <h3>Angebote</h3>
+      <div class="row wide">
+        <label for="st-plz">Postleitzahl<input id="st-plz" inputmode="numeric" maxlength="5" placeholder="z. B. 49074"></label>
+        <div class="bottom"><button type="submit">Speichern</button></div>
+      </div>
+      <label class="plain" for="st-war"><input type="checkbox" id="st-war">30 Tage vor Garantie-Ende erinnern</label>
+    </form>
+
+    <div class="card">
+      <h3>Datensicherung</h3>
+      <p class="small muted">Deine Daten liegen nur auf diesem Handy. Sichere sie ab und zu, zum Beispiel in deine Nextcloud oder per Mail an dich selbst.</p>
+      <div class="actions"><button type="button" id="bk-export">Backup teilen</button><button type="button" id="bk-import">Backup einspielen</button></div>
+      <div id="bk-confirm"></div>
+      <p class="hint" id="bk-hint"></p>
+    </div>
+    <p class="small muted" id="about"></p>
+  </div>
+</section>
+</main>
+</div>
+
+<nav class="tabs" aria-label="Bereiche">
+  <button data-tab="training"><svg viewBox="0 0 24 24"><path d="M3 10v4M6 7v10M18 7v10M21 10v4M6 12h12"/></svg>Training</button>
+  <button data-tab="essen"><svg viewBox="0 0 24 24"><path d="M3 12h18a9 9 0 0 1-18 0zM8 8c0-2 2-2 2-4M13 8c0-2 2-2 2-4"/></svg>Essen</button>
+  <button data-tab="plan"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h3M8 17h6"/></svg>Wochenplan</button>
+  <button data-tab="einkauf"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.5 11h11L21 8H7"/><circle cx="9" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/></svg>Einkauf</button>
+  <button data-tab="mehr"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>Mehr</button>
+</nav>
+<div id="toast" hidden role="status"></div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
