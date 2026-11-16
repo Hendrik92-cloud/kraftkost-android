@@ -1,7 +1,8 @@
 import { db, save } from './store.js';
 import { S, addRender, busy, lastWeight, me, familyFactor, householdText } from './app.js';
 import { $, $$, esc, de, num, uid, today, addDays, fmtDay, toast, WD, wdOf } from './util.js';
-import { askJSON, aiMsg } from './claude.js';
+import { askJSON, aiMsg, hasKey } from './claude.js';
+import { showBridge } from './bridge.js';
 import { logMeal } from './essen.js';
 import { addShopItems, CATS } from './einkauf.js';
 import { scheduleTraining } from './native.js';
@@ -99,6 +100,7 @@ function renderPlanView() {
 
 async function swapMeal(day, i, btn) {
   const m = day.meals[i];
+  if (!hasKey()) { toast('Tauschen per Knopf braucht den API-Schlüssel. Ändere das Gericht über „Bearbeiten“.'); return; }
   const others = db.mealplan.days.flatMap(d => d.meals.map(x => x.name));
   await busy(btn, null, '', async () => {
     btn.textContent = 'Claude sucht …';
@@ -124,6 +126,12 @@ async function buildShopping(P) {
   const lines = P.days.filter(d => d.date >= from).flatMap(d => d.meals.flatMap(m => m.ingredients));
   if (!lines.length) { toast('Im Plan stehen keine Zutaten.'); return; }
   const hint = $('#mp-shophint');
+  // Ohne Schlüssel: die mitgelieferte Liste nehmen (stimmt, solange nichts getauscht wurde), sonst lokal zusammenführen.
+  if (!hasKey()) {
+    const n = addShopItems(P.shopping?.length ? P.shopping : localMerge(lines));
+    toast(n ? `${n} Sachen auf die Einkaufsliste gesetzt` : 'Alles steht schon auf der Liste');
+    return;
+  }
   await busy($('#mp-shop'), hint, 'Claude fasst die Zutaten zusammen …', async () => {
     let items;
     try {
@@ -151,9 +159,9 @@ async function createPlan(e) {
   const keep = locked.filter(m => dates.includes(m.date));
   const offers = $('#mp-offers').checked ? offersText() : '';
   const liked = db.dishes.map(d => d.name).slice(0, 15);
-  await busy($('#mp-go'), $('#mp-hint'), 'Claude plant eure Woche. Das kann ein bis zwei Minuten dauern …', async () => {
-    try {
-      const r = await askJSON(`Erstelle einen Familien-Essensplan für 7 Tage auf Deutsch. Alle essen dieselben Gerichte, nur die Portionen unterscheiden sich.
+  const ctx = { dates, keep, td, meals, effort, pref };
+  const bridge = !hasKey();
+  const prompt = `Erstelle einen Familien-Essensplan für 7 Tage auf Deutsch. Alle essen dieselben Gerichte, nur die Portionen unterscheiden sich.
 Haushalt: ${householdText()}.
 Mahlzeiten pro Tag: ${slotsFor(meals).join(', ')}. Frühstück und Snacks dürfen einfach sein; Mittag kann an Werktagen etwas Mitnehmbares sein.
 Trainingsziel des Erwachsenen mit Portion 1: ${db.plan?.goal || 'fit und gesund bleiben'}.${w ? ` Körpergewicht ${w} kg.` : ''}
@@ -164,24 +172,33 @@ Aufwand: ${effort}. Wünsche: ${pref || 'keine'}.${liked.length ? ' Gerichte, di
 Kindgerecht: nicht scharf, Gemüse gern versteckt oder als Rohkost dazu; bei Bedarf ein kurzer Tipp in "kind_tipp".
 Reste und Vorkochen sinnvoll nutzen, damit der Einkauf klein bleibt. Einfache Zutaten vom Discounter.${offers ? '\nBevorzuge Zutaten aus diesen aktuellen Angeboten:\n' + offers : ''}${keep.length ? '\nDiese Mahlzeiten stehen fest und bleiben unverändert, plane drumherum: ' + keep.map(m => `${m.date} ${m.slot}: ${m.name}`).join('; ') : ''}
 Nährwerte je Mahlzeit für die Portion 1. Zutatenmengen für den ganzen Haushalt (${factorStr(Math.round(familyFactor() * 10) / 10)} Portionen).
-Form: {"ziel_kcal":2500,"tage":[{"datum":"YYYY-MM-DD","mahlzeiten":[{"slot":"Frühstück","name":"…","kcal":550,"protein":35,"kohlenhydrate":60,"fett":15,"zeit":"10 min","zutaten":[{"name":"Haferflocken","menge":"200 g"}],"zubereitung":"2 bis 3 Sätze","kind_tipp":""}]}]}`, { smart: true, maxTokens: 16000 });
-      const days = (r.tage || []).slice(0, 7).map((t, i) => {
-        const dt = dates[i];
-        const ms = (t.mahlzeiten || []).map(mapMeal).filter(m => m.name);
-        keep.filter(k => k.date === dt).forEach(k => {
-          const j = ms.findIndex(m => m.slot === k.slot); const { date, ...meal } = k;
-          if (j >= 0) ms[j] = meal; else ms.push(meal);
-        });
-        return { date: dt, training: td.includes(wdOf(dt)), meals: ms };
-      }).filter(t => t.meals.length);
-      if (!days.length) throw new Error();
-      db.mealplan = { days, kcalTarget: num(r.ziel_kcal) || s.kcalGoal || null, mealsPerDay: meals, effort, pref, createdAt: Date.now() };
-      if (!s.kcalGoal && db.mealplan.kcalTarget) s.kcalGoal = db.mealplan.kcalTarget;
-      sel = null; editing = null; $('#mp-setup').open = false; $('#mp-hint').textContent = '';
-      save(); toast('Wochenplan gespeichert');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (err) { $('#mp-hint').textContent = err.code ? aiMsg(err) : 'Der Plan kam unvollständig an. Versuch es nochmal.'; }
+${bridge ? `Fasse außerdem alle Zutaten der Woche zu einer Einkaufsliste zusammen (gleiche addieren, auf Packungsgrößen runden, ohne Salz, Pfeffer, Gewürze, Öl, Mehl, Zucker) mit Kategorie aus: ${CATS.join(', ')}.\n` : ''}Form: {"art":"wochenplan","ziel_kcal":2500,"tage":[{"datum":"YYYY-MM-DD","mahlzeiten":[{"slot":"Frühstück","name":"…","kcal":550,"protein":35,"kohlenhydrate":60,"fett":15,"zeit":"10 min","zutaten":[{"name":"Haferflocken","menge":"200 g"}],"zubereitung":"2 bis 3 Sätze","kind_tipp":""}]}]${bridge ? ',"einkauf":[{"name":"Haferflocken","menge":"1 kg","kategorie":"Brot & Trockenware"}]' : ''}}`;
+  if (bridge) { showBridge($('#mp-bridge'), prompt, r => applyMealPlan(r, ctx)); return; }
+  await busy($('#mp-go'), $('#mp-hint'), 'Claude plant eure Woche. Das kann ein bis zwei Minuten dauern …', async () => {
+    try { if (!applyMealPlan(await askJSON(prompt, { smart: true, maxTokens: 16000 }), ctx)) throw new Error(); }
+    catch (err) { $('#mp-hint').textContent = err.code ? aiMsg(err) : 'Der Plan kam unvollständig an. Versuch es nochmal.'; }
   });
+}
+
+function applyMealPlan(r, { dates, keep, td, meals, effort, pref }) {
+  const s = db.settings;
+  const days = (r.tage || []).slice(0, 7).map((t, i) => {
+    const dt = dates[i];
+    const ms = (t.mahlzeiten || []).map(mapMeal).filter(m => m.name);
+    keep.filter(k => k.date === dt).forEach(k => {
+      const j = ms.findIndex(m => m.slot === k.slot); const { date, ...meal } = k;
+      if (j >= 0) ms[j] = meal; else ms.push(meal);
+    });
+    return { date: dt, training: td.includes(wdOf(dt)), meals: ms };
+  }).filter(t => t.meals.length);
+  if (!days.length) return false;
+  const shopping = (r.einkauf || []).map(x => ({ name: String(x.name || ''), amount: String(x.menge || ''), cat: CATS.includes(x.kategorie) ? x.kategorie : 'Sonstiges' })).filter(x => x.name);
+  db.mealplan = { days, shopping, kcalTarget: num(r.ziel_kcal) || s.kcalGoal || null, mealsPerDay: meals, effort, pref, createdAt: Date.now() };
+  if (!s.kcalGoal && db.mealplan.kcalTarget) s.kcalGoal = db.mealplan.kcalTarget;
+  sel = null; editing = null; $('#mp-setup').open = false; $('#mp-hint').textContent = '';
+  save(); toast('Wochenplan gespeichert');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  return true;
 }
 
 export function initPlan() {

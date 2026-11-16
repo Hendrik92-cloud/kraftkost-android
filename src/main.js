@@ -1,5 +1,5 @@
 import { App } from '@capacitor/app';
-import { db, load, onChange, flush } from './store.js';
+import { db, load, onChange, flush, save } from './store.js';
 import { S, renderAll } from './app.js';
 import { $, $$, today, addDays, fmtDay } from './util.js';
 import { isNative, tap } from './native.js';
@@ -57,8 +57,8 @@ async function boot() {
     });
   }
 
-  showTab(db.settings.apiKey ? 'training' : 'mehr', false);
-  if (!db.settings.apiKey) showMore('einstellungen');
+  $('#nokey-ok').onclick = () => { db.settings.keyNoticeSeen = true; save(); };
+  showTab('training', false);
   setDay(today());
 }
 

@@ -202,7 +202,7 @@ function renderSettings() {
     save(); reschedule();
   });
   renderHousehold();
-  $('#nokey').hidden = !!s.apiKey;
+  $('#nokey').hidden = !!s.apiKey || !!s.keyNoticeSeen;
 }
 function renderHousehold() {
   const box = $('#hh-list'); if (box.contains(document.activeElement)) return;

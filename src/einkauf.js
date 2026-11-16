@@ -1,7 +1,8 @@
 import { db, save } from './store.js';
 import { addRender, busy } from './app.js';
 import { $, $$, esc, eur, uid, today, fmtDay, toast, words, de, daysUntil } from './util.js';
-import { askJSON, aiMsg } from './claude.js';
+import { askJSON, aiMsg, hasKey } from './claude.js';
+import { showBridge } from './bridge.js';
 import { listen } from './native.js';
 
 export const CATS = ['Obst & Gemüse', 'Fleisch & Fisch', 'Kühlregal', 'Brot & Trockenware', 'Konserven & Vorrat', 'Tiefkühl', 'Getränke', 'Drogerie & Haushalt', 'Sonstiges'];
@@ -100,24 +101,28 @@ async function searchOffers() {
   const plz = db.settings.plz;
   if (!plz) { toast('Trag zuerst deine Postleitzahl unter Mehr → Einstellungen ein.'); return; }
   const wanted = [...new Set(db.shop.filter(x => !x.done).map(x => x.name).concat((db.mealplan?.days || []).flatMap(d => d.meals.flatMap(m => m.ingredients.map(z => z.name)))))].slice(0, 40);
+  const prompt = `Suche im Internet die aktuell gültigen Lebensmittel-Angebote dieser Woche (heute ist ${fmtDay(today())} ${today().slice(0, 4)}) bei Aldi, Lidl, Penny und Netto Marken-Discount für die Postleitzahl ${plz}. Kläre, ob dort Aldi Nord oder Aldi Süd zuständig ist.
+${wanted.length ? 'Achte besonders auf diese Produkte von der Einkaufsliste und aus dem Essensplan: ' + wanted.join(', ') + '.' : ''}
+Außerdem gesunde Grundnahrungsmittel: Fleisch, Fisch, Milchprodukte, Quark, Eier, Obst, Gemüse, Haferflocken, Reis, Nudeln, Hülsenfrüchte. Keine Non-Food-Artikel, keine Süßigkeiten, kein Alkohol.
+Nimm nur Angebote auf, die du in einer Quelle für diese Woche gefunden hast, und erfinde keine Preise. Höchstens 15 pro Laden.
+Form: {"art":"angebote","angebote":[{"laden":"Lidl","name":"Hähnchenbrustfilet","einheit":"1 kg","preis":6.99,"normalpreis":9.99,"gueltig":"Mo 16.11. – Sa 21.11."}],"hinweis":"kurz, z. B. Aldi Nord, Woche 47"}`;
+  const apply = r => {
+    const items = (r.angebote || []).map(o => ({
+      store: String(o.laden || '').replace(/marken-?discount/i, '').trim() || 'Unbekannt', name: String(o.name || ''), unit: String(o.einheit || ''),
+      price: Number(String(o.preis).replace(',', '.')) || 0, oldPrice: Number(String(o.normalpreis).replace(',', '.')) || null, valid: String(o.gueltig || '')
+    })).filter(o => o.name && o.price > 0);
+    if (!items.length) return false;
+    db.offers = { items, note: String(r.hinweis || ''), plz, updatedAt: today() };
+    save(); toast(`${items.length} Angebote übernommen`);
+    return true;
+  };
+  if (!hasKey()) { showBridge($('#o-bridge'), prompt, apply); return; }
   const btn = $('#o-search');
   await busy(btn, null, '', async () => {
     btn.textContent = 'Suche läuft …';
     $('#o-meta').textContent = 'Claude durchsucht die aktuellen Prospekte. Das dauert ein bis zwei Minuten …';
-    try {
-      const r = await askJSON(`Suche im Internet die aktuell gültigen Lebensmittel-Angebote dieser Woche (heute ist ${fmtDay(today())} ${today().slice(0, 4)}) bei Aldi, Lidl, Penny und Netto Marken-Discount für die Postleitzahl ${plz}. Kläre, ob dort Aldi Nord oder Aldi Süd zuständig ist.
-${wanted.length ? 'Achte besonders auf diese Produkte von der Einkaufsliste und aus dem Essensplan: ' + wanted.join(', ') + '.' : ''}
-Außerdem gesunde Grundnahrungsmittel: Fleisch, Fisch, Milchprodukte, Quark, Eier, Obst, Gemüse, Haferflocken, Reis, Nudeln, Hülsenfrüchte. Keine Non-Food-Artikel, keine Süßigkeiten, kein Alkohol.
-Nimm nur Angebote auf, die du in einer Quelle für diese Woche gefunden hast, und erfinde keine Preise. Höchstens 15 pro Laden.
-Form: {"angebote":[{"laden":"Lidl","name":"Hähnchenbrustfilet","einheit":"1 kg","preis":6.99,"normalpreis":9.99,"gueltig":"Mo 16.11. – Sa 21.11."}],"hinweis":"kurz, z. B. Aldi Nord, Woche 47"}`, { webSearch: true, maxTokens: 8000 });
-      const items = (r.angebote || []).map(o => ({
-        store: String(o.laden || '').replace(/marken-?discount/i, '').trim() || 'Unbekannt', name: String(o.name || ''), unit: String(o.einheit || ''),
-        price: Number(o.preis) || 0, oldPrice: Number(o.normalpreis) || null, valid: String(o.gueltig || '')
-      })).filter(o => o.name && o.price > 0);
-      if (!items.length) throw Object.assign(new Error('Keine Angebote gefunden. Versuch es später nochmal.'), { code: 'empty' });
-      db.offers = { items, note: String(r.hinweis || ''), plz, updatedAt: today() };
-      save(); toast(`${items.length} Angebote gefunden`);
-    } catch (e) { $('#o-meta').textContent = e.code === 'empty' ? e.message : aiMsg(e); }
+    try { if (!apply(await askJSON(prompt, { webSearch: true, maxTokens: 8000 }))) $('#o-meta').textContent = 'Keine Angebote gefunden. Versuch es später nochmal.'; }
+    catch (e) { $('#o-meta').textContent = aiMsg(e); }
     finally { btn.textContent = 'Angebote suchen'; }
   });
 }

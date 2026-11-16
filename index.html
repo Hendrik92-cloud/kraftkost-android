@@ -20,7 +20,8 @@
 </header>
 
 <main>
-<div class="notice" id="nokey" hidden>Für Pläne, Foto-Scan und Angebotssuche braucht die App deinen Claude-API-Schlüssel. <button type="button" class="sm" data-goto="einstellungen">Jetzt eintragen</button></div>
+<div class="notice" id="nokey" hidden>Pläne und Angebote erstellst du über die Claude-App, das kostet nichts extra: Auf „Plan erstellen“ tippen, Anfrage kopieren, Antwort einfügen. Mit einem API-Schlüssel geht es direkt in der App, dazu Teller-Foto und Belege auslesen.
+  <div class="actions"><button type="button" class="sm" id="nokey-ok">Verstanden</button><button type="button" class="sm ghost" data-goto="einstellungen">Schlüssel eintragen</button></div></div>
 
 <!-- TRAINING -->
 <section class="tab" id="tab-training">
@@ -57,6 +58,21 @@
       <label for="p-notes">Wünsche oder Einschränkungen<input id="p-notes" placeholder="z. B. Rücken schonen, viel Geräte"></label>
       <div class="actions"><button class="primary" type="submit" id="p-go">Plan erstellen</button><span class="hint" id="p-hint"></span></div>
     </form>
+    <div id="p-bridge"></div>
+  </details>
+  <details class="card" id="basics">
+    <summary>Grundlagen fürs Studio</summary>
+    <div class="stack small" style="gap:10px">
+      <p><b>Sätze und Wiederholungen.</b> „3 × 10“ heißt: 10-mal bewegen, kurz Pause, das Ganze dreimal. Zwischen den Sätzen 1–2 Minuten Pause, dafür ist der Timer.</p>
+      <p><b>Startgewicht finden.</b> Erst leicht anfangen und 10 Wiederholungen testen. Richtig ist das Gewicht, wenn nach dem letzten Satz noch 2–3 saubere Wiederholungen gegangen wären. Ging es viel leichter, beim nächsten Satz eine Stufe höher.</p>
+      <p><b>Aufwärmen.</b> 5–10 Minuten Rad oder Crosstrainer, dann vor der ersten Übung ein Satz mit halbem Gewicht.</p>
+      <p><b>Tempo.</b> Kontrolliert bewegen, etwa 1 Sekunde drücken oder ziehen, 2 Sekunden zurück. Kein Schwung, das Gewicht nicht fallen lassen.</p>
+      <p><b>Atmung.</b> Bei der Anstrengung ausatmen, beim Zurückgehen einatmen. Nicht die Luft anhalten.</p>
+      <p><b>Gerät einstellen.</b> Sitz und Polster so, dass das arbeitende Gelenk, etwa das Knie, auf Höhe der Drehachse des Geräts liegt. Die ist meist farbig markiert. Frag beim ersten Mal ruhig einen Trainer, das gehört zum Service.</p>
+      <p><b>Anstrengung oder Schmerz?</b> Brennen im Muskel ist normal. Stechender Schmerz im Gelenk nicht, dann die Übung abbrechen.</p>
+      <p><b>Muskelkater</b> in den ersten zwei Wochen ist normal und kein Zeichen, dass etwas falsch war. Deshalb startet der Plan mit einer Eingewöhnung.</p>
+      <p><b>Steigern</b> musst du nicht selbst planen: Hak die Übung ab, die App schlägt beim nächsten Mal das passende Gewicht vor.</p>
+    </div>
   </details>
 </section>
 
@@ -64,6 +80,7 @@
 <section class="tab" id="tab-essen" hidden>
   <h2>Essen</h2>
   <div class="card" id="m-summary"></div>
+  <div class="card" id="m-quick" hidden></div>
   <form class="card" id="mform" autocomplete="off">
     <h3>Mahlzeit erfassen</h3>
     <div class="inputmic">
@@ -91,7 +108,7 @@
     <label class="plain" for="m-fav"><input type="checkbox" id="m-fav">Als Gericht merken</label>
   </form>
   <div id="m-list"></div>
-  <div class="card">
+  <div class="card" id="m-tipcard">
     <div class="actions between"><h3>Tipp für heute</h3><button type="button" class="sm" id="m-tipbtn">Tipp holen</button></div>
     <div id="m-tip"><p class="small muted">Claude schaut auf das, was du heute gegessen und trainiert hast, und gibt dir 2–3 Tipps für den Rest des Tages.</p></div>
   </div>
@@ -120,6 +137,7 @@
       <label class="plain" for="mp-offers"><input type="checkbox" id="mp-offers" checked>Aktuelle Angebote bevorzugen</label>
       <div class="actions"><button class="primary" type="submit" id="mp-go">Wochenplan erstellen</button><span class="hint" id="mp-hint"></span></div>
     </form>
+    <div id="mp-bridge"></div>
   </details>
 </section>
 
@@ -138,6 +156,7 @@
   <div class="card">
     <div class="actions between"><h3>Angebote der Woche</h3><button type="button" class="sm" id="o-search">Angebote suchen</button></div>
     <p class="small muted" id="o-meta"></p>
+    <div id="o-bridge"></div>
     <div class="filter" id="o-filter"></div>
     <div id="o-list"></div>
   </div>
@@ -189,7 +208,7 @@
     <form class="card" id="set-key" autocomplete="off">
       <h3>Claude</h3>
       <label for="st-key">API-Schlüssel<input id="st-key" type="password" placeholder="sk-ant-…" autocomplete="off"></label>
-      <p class="small muted">Den Schlüssel legst du unter console.anthropic.com an. Er bleibt nur auf diesem Handy und kommt nicht ins Backup. Abgerechnet wird nach Verbrauch.</p>
+      <p class="small muted">Freiwillig. Ohne Schlüssel erstellst du Pläne und Angebote über die Claude-App. Mit Schlüssel geht alles direkt, dazu Teller-Foto, Belege auslesen und Tipps. Anlegen unter console.anthropic.com, abgerechnet nach Verbrauch. Der Schlüssel bleibt nur auf diesem Handy und kommt nicht ins Backup.</p>
       <details><summary>Modelle</summary>
         <div class="row" style="margin-top:8px">
           <label for="st-mq">Schnell<input id="st-mq"></label>

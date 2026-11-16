@@ -3,6 +3,7 @@ import { S, addRender, busy, lastWeight, defaultTrainDays } from './app.js';
 import { $, esc, de, num, uid, iso, today, addDays, fmtDay, toast, armed, wdOf } from './util.js';
 import { askJSON, aiMsg, hasKey } from './claude.js';
 import { listen, setTimer, buzz, scheduleTraining } from './native.js';
+import { showBridge } from './bridge.js';
 
 const setStr = w => `${w.sets} × ${w.reps}${w.kg ? ` · ${de(w.kg, 1)} kg` : ''}`;
 const sortKey = w => w.date + String(w.at).padStart(14, '0');
@@ -68,22 +69,75 @@ function renderPlan() {
   ${head}
   <div class="filter">${plan.days.map((x, i) => `<button type="button" data-pday="${i}" aria-pressed="${i === idx}">${esc(x.title.split(/[–-]/)[0].trim() || 'Tag ' + (i + 1))}</button>`).join('')}</div>
   <div><h4>${esc(d.title)}</h4>${d.focus ? `<p class="small muted">${esc(d.focus)}</p>` : ''}</div>
-  <div>${d.exercises.map((x, i) => {
-    const tg = nextTarget(x, deload);
-    return `<div class="ex ${done.has(x.name.toLowerCase()) ? 'logged' : ''}"><div class="main"><div class="t">${esc(x.name)}</div>
-      <div class="s">${x.sets} × ${esc(x.reps)}${tg && tg.kg ? ` · heute ${de(tg.kg, 2)} kg × ${tg.reps}` : ''}${tg?.up ? ' <span class="chip t">steigern</span>' : ''}${tg?.deload ? ' <span class="chip mute">leichter</span>' : ''}</div></div>
-      <button type="button" class="sm" data-pex="${i}">Eintragen</button>${x.tip ? `<div class="tip">${esc(x.tip)}</div>` : ''}</div>`;
-  }).join('')}</div>
+  <div>${d.exercises.map((x, i) => exHTML(x, i, nextTarget(x, deload))).join('')}</div>
   ${plan.warmup || plan.cardio || (plan.tips || []).length ? `<details><summary>Aufwärmen, Ausdauer, Ernährung</summary><div class="stack small" style="gap:6px">${plan.warmup ? `<p><b>Aufwärmen:</b> ${esc(plan.warmup)}</p>` : ''}${plan.cardio ? `<p><b>Ausdauer:</b> ${esc(plan.cardio)}</p>` : ''}${(plan.tips || []).map(t => `<p>• ${esc(t)}</p>`).join('')}</div></details>` : ''}
   <p class="small muted">Schaffst du in allen Sätzen das obere Ende der Wiederholungen, schlägt die App beim nächsten Mal mehr Gewicht vor.</p>`;
   v.querySelectorAll('[data-pday]').forEach(b => b.onclick = () => { planSel = +b.dataset.pday; renderPlan(); });
-  v.querySelectorAll('[data-pex]').forEach(b => b.onclick = () => {
-    const x = d.exercises[+b.dataset.pex]; const tg = nextTarget(x, deload);
-    $('#w-ex').value = x.name; $('#w-sets').value = x.sets || 3; $('#w-reps').value = tg?.reps || repRange(x.reps)[0];
-    $('#w-kg').value = tg && tg.kg ? String(tg.kg).replace('.', ',') : '';
-    pendingPlanDay = idx; exHint();
-    $('#wform').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Ein Tipp: Ziel von heute übernehmen. Beim ersten Mal (noch kein Gewicht) direkt anpassen lassen.
+  v.querySelectorAll('[data-done]').forEach(b => b.onclick = () => {
+    const i = +b.dataset.done, x = d.exercises[i], tg = nextTarget(x, deload);
+    if (!tg) { openAdj(i, x, tg); return; }
+    logEx(x.name, x.sets || 3, tg.reps, tg.kg, idx, deload);
   });
+  v.querySelectorAll('[data-adj]').forEach(b => b.onclick = () => { const i = +b.dataset.adj; if (adj?.i === i) { adj = null; renderPlan(); } else openAdj(i, d.exercises[i], nextTarget(d.exercises[i], deload)); });
+  v.querySelectorAll('[data-undo]').forEach(b => b.onclick = () => { db.workouts = db.workouts.filter(w => w.id !== b.dataset.undo); save(); toast('Rückgängig gemacht'); });
+  v.querySelectorAll('[data-step]').forEach(b => b.onclick = () => {
+    const [k, delta] = b.dataset.step.split(':'); const step = Number(delta);
+    if (k === 'kg') adj.kg = Math.max(0, r25((num($('#adj-kg').value) || 0) + step));
+    else adj[k] = Math.max(1, adj[k] + step);
+    renderPlan();
+  });
+  const kgIn = v.querySelector('#adj-kg'); if (kgIn) kgIn.onchange = () => { adj.kg = num(kgIn.value) || 0; };
+  v.querySelectorAll('[data-adjsave]').forEach(b => b.onclick = () => {
+    const x = d.exercises[adj.i]; const kg = num($('#adj-kg').value) ?? adj.kg;
+    logEx(x.name, adj.sets, adj.reps, kg || 0, idx, deload); adj = null;
+  });
+}
+
+let adj = null;
+function openAdj(i, x, tg) {
+  const lw = lastOf(x.name);
+  adj = { i, sets: x.sets || 3, reps: tg?.reps || repRange(x.reps)[0], kg: tg?.kg ?? lw?.kg ?? 0, first: !tg };
+  renderPlan();
+}
+function logEx(ex, sets, reps, kg, planDay, deload) {
+  const w = { id: uid(), at: Date.now(), date: S.day, ex, sets, reps, kg, planDay };
+  if (deload) w.deload = true;
+  db.workouts.push(w); save();
+  toast(`✓ ${ex}: ${sets} × ${reps}${kg ? ' · ' + de(kg, 2) + ' kg' : ''}`);
+}
+
+const yt = n => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(n + ' richtig ausführen');
+function howHTML(x) {
+  const h = x.how || {};
+  const li = a => (a || []).filter(Boolean);
+  return `<details class="full"><summary>So geht's</summary><div class="stack small" style="gap:8px">
+    ${h.muscles ? `<p><b>Trainiert:</b> ${esc(h.muscles)}</p>` : ''}
+    ${h.setup ? `<p><b>Einstellen:</b> ${esc(h.setup)}</p>` : ''}
+    ${li(h.steps).length ? `<div><b>Ablauf</b><ol style="margin:4px 0 0;padding-left:20px">${li(h.steps).map(s => `<li>${esc(s)}</li>`).join('')}</ol></div>` : ''}
+    ${h.breath ? `<p><b>Atmung:</b> ${esc(h.breath)}</p>` : ''}
+    ${li(h.mistakes).length ? `<div><b>Typische Fehler</b><ul style="margin:4px 0 0;padding-left:20px">${li(h.mistakes).map(s => `<li>${esc(s)}</li>`).join('')}</ul></div>` : ''}
+    ${h.start ? `<p><b>Startgewicht:</b> ${esc(h.start)}</p>` : ''}
+    ${h.alt ? `<p><b>Gerät besetzt?</b> ${esc(h.alt)}</p>` : ''}
+    ${!x.how && x.tip ? `<p>${esc(x.tip)}</p>` : ''}
+    <p><a href="${yt(x.name)}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">Video dazu ansehen ↗</a></p>
+  </div></details>`;
+}
+function exHTML(x, i, tg) {
+  const logged = db.workouts.filter(w => w.date === S.day && w.ex.toLowerCase() === x.name.toLowerCase()).pop();
+  const target = tg ? `heute ${tg.kg ? de(tg.kg, 2) + ' kg × ' : ''}${tg.reps}` : 'erstes Mal: Startgewicht wählen';
+  const panel = adj?.i === i ? `<div class="full stepper">
+      ${adj.first ? '<p class="small muted">Wähl ein Gewicht, bei dem nach den Wiederholungen noch 2–3 gegangen wären. Mehr dazu unter „So geht\'s“.</p>' : ''}
+      <div class="steprow"><span>Sätze</span><button type="button" class="sm" data-step="sets:-1">−</button><b>${adj.sets}</b><button type="button" class="sm" data-step="sets:1">+</button></div>
+      <div class="steprow"><span>Wdh.</span><button type="button" class="sm" data-step="reps:-1">−</button><b>${adj.reps}</b><button type="button" class="sm" data-step="reps:1">+</button></div>
+      <div class="steprow"><span>kg</span><button type="button" class="sm" data-step="kg:-2.5">−2,5</button><input id="adj-kg" inputmode="decimal" value="${String(adj.kg).replace('.', ',')}" aria-label="Gewicht in kg"><button type="button" class="sm" data-step="kg:2.5">+2,5</button></div>
+      <button type="button" class="primary" data-adjsave>Speichern</button></div>` : '';
+  return `<div class="ex ${logged ? 'logged' : ''}"><div class="main"><div class="t">${esc(x.name)}</div>
+    <div class="s">${logged ? `erledigt: ${setStr(logged)}` : `${x.sets} × ${esc(x.reps)} · ${target}${tg?.up ? ' <span class="chip t">steigern</span>' : ''}${tg?.deload ? ' <span class="chip mute">leichter</span>' : ''}`}</div></div>
+    <div class="actions" style="justify-content:flex-end">${logged
+      ? `<button type="button" class="sm ghost" data-undo="${logged.id}">Rückgängig</button>`
+      : `<button type="button" class="sm primary" data-done="${i}">✓ Erledigt</button><button type="button" class="sm ghost" data-adj="${i}" aria-label="Anpassen">±</button>`}</div>
+    ${panel}${howHTML(x)}</div>`;
 }
 
 /* ---------- Satzpause ---------- */
@@ -177,35 +231,52 @@ async function createPlan(e) {
   const w = lastWeight();
   const hist = [...new Set(db.workouts.filter(x => x.kg).map(x => x.ex))].slice(0, 20)
     .map(n => { const l = lastOf(n, true); return l ? `${n} ${de(l.kg, 1)} kg × ${l.reps}` : ''; }).filter(Boolean).join('; ');
-  await busy($('#p-go'), $('#p-hint'), 'Claude stellt deinen Plan zusammen. Das dauert etwa eine Minute …', async () => {
-    try {
-      const r = await askJSON(`Erstelle einen Trainingsplan fürs Fitnessstudio auf Deutsch.
+  const meta = { goal, days, level, time, notes, start };
+  const prompt = `Erstelle einen Trainingsplan fürs Fitnessstudio auf Deutsch für jemanden, der keine Vorkenntnisse über Übungen voraussetzen möchte.
 Ziel: ${goal}. Trainingstage pro Woche: ${days}. Erfahrung: ${level}. Zeit pro Einheit: ${time}.${w ? ` Körpergewicht: ${w} kg.` : ''}
 Wünsche oder Einschränkungen: ${notes || 'keine'}.${hist ? `\nBisherige Arbeitsgewichte: ${hist}.` : ''}
 Plane einen kompletten Zyklus über 8 bis 12 Wochen mit Phasen (zum Beispiel Eingewöhnung, Aufbau, Steigerung) und einer leichteren Erholungswoche. Steigerung als doppelte Progression: Wer in allen Sätzen das obere Ende der Wiederholungen schafft, erhöht beim nächsten Mal das Gewicht.
-Gib genau ${days} unterschiedliche Trainingstage (Tag A, Tag B, …), je 5 bis 7 Übungen an Geräten, Kabelzug, Kurz- oder Langhantel, wie es sie in normalen Studios gibt. Sätze als Zahl, Wiederholungen als Bereich wie "8-10". Pro Übung ein Technik-Tipp mit höchstens 12 Wörtern.
+Gib genau ${days} unterschiedliche Trainingstage (Tag A, Tag B, …), je 5 bis 6 Übungen. Bevorzuge Geräte und Kabelzug, die leicht zu lernen und in normalen Studios Standard sind. Sätze als Zahl, Wiederholungen als Bereich wie "8-10".
+Erkläre jede Übung so, dass man sie allein am Gerät richtig ausführen kann: welche Muskeln, wie man das Gerät einstellt, Ablauf in 3 bis 5 kurzen Schritten, Atmung, 2 typische Fehler, wie man das Startgewicht findet und eine Alternative, falls das Gerät besetzt ist. Kurze, klare Sätze.
 Dazu ein Satz zum Aufwärmen, ein Satz zu Ausdauertraining passend zum Ziel und 3 kurze, ausgewogene Ernährungstipps (keine Crash-Diäten).
-Form: {"name":"kurzer Planname","wochen":10,"phasen":[{"wochen":"1-2","titel":"Eingewöhnung","hinweis":"ein Satz"}],"aufwaermen":"…","ausdauer":"…","tage":[{"titel":"Tag A – Oberkörper","fokus":"ein Satz","uebungen":[{"name":"Bankdrücken","saetze":3,"wdh":"8-10","hinweis":"…"}]}],"ernaehrung":["…"]}`, { smart: true, maxTokens: 6000 });
-      const daysArr = (r.tage || []).map(t => ({
-        title: String(t.titel || ''), focus: String(t.fokus || ''),
-        exercises: (t.uebungen || []).map(u => ({ name: String(u.name || ''), sets: num(u.saetze) || 3, reps: String(u.wdh || '10'), tip: String(u.hinweis || '') })).filter(u => u.name)
-      })).filter(t => t.exercises.length);
-      if (!daysArr.length) throw new Error();
-      db.plan = {
-        name: String(r.name || 'Dein Plan'), goal, daysPerWeek: days, level, time, notes, start, days: daysArr,
-        weeks: Math.max(4, Math.min(16, num(r.wochen) || 10)),
-        phases: (r.phasen || []).map(p => ({ weeks: String(p.wochen || ''), title: String(p.titel || ''), note: String(p.hinweis || '') })).filter(p => p.weeks),
-        warmup: String(r.aufwaermen || ''), cardio: String(r.ausdauer || ''), tips: (r.ernaehrung || []).map(String), createdAt: Date.now()
-      };
-      if (db.settings.trainDays.length !== days) {
-        db.settings.trainDays = defaultTrainDays(days);
-        scheduleTraining(db.settings.trainDays, db.settings.trainTime, db.settings.remind).catch(() => {});
-      }
-      planSel = 0; restTotal = 0; $('#plan-setup').open = false; $('#p-hint').textContent = '';
-      save(); toast('Trainingsplan gespeichert');
-      $('#plan-view').scrollIntoView({ behavior: 'smooth' });
-    } catch (err) { $('#p-hint').textContent = err.code ? aiMsg(err) : 'Der Plan kam unvollständig an. Versuch es nochmal.'; }
+Form: {"art":"trainingsplan","name":"kurzer Planname","wochen":10,"phasen":[{"wochen":"1-2","titel":"Eingewöhnung","hinweis":"ein Satz"}],"aufwaermen":"…","ausdauer":"…","tage":[{"titel":"Tag A – Ganzkörper","fokus":"ein Satz","uebungen":[{"name":"Beinpresse","saetze":3,"wdh":"10-12","muskeln":"Oberschenkel, Po","einstellen":"…","ablauf":["…","…","…"],"atmung":"…","fehler":["…","…"],"startgewicht":"…","alternative":"…"}]}],"ernaehrung":["…"]}`;
+  if (!hasKey()) {
+    showBridge($('#p-bridge'), prompt, r => applyPlan(r, meta));
+    return;
+  }
+  await busy($('#p-go'), $('#p-hint'), 'Claude stellt deinen Plan zusammen. Das dauert etwa eine Minute …', async () => {
+    try { if (!applyPlan(await askJSON(prompt, { smart: true, maxTokens: 12000 }), meta)) throw new Error(); }
+    catch (err) { $('#p-hint').textContent = err.code ? aiMsg(err) : 'Der Plan kam unvollständig an. Versuch es nochmal.'; }
   });
+}
+
+const str = v => String(v || '');
+const arr = v => (Array.isArray(v) ? v.map(String).filter(Boolean) : []);
+/** Übernimmt einen Plan aus der Claude-Antwort. Gibt false zurück, wenn es keiner ist. */
+function applyPlan(r, meta) {
+  const daysArr = (r.tage || []).map(t => ({
+    title: str(t.titel), focus: str(t.fokus),
+    exercises: (t.uebungen || []).map(u => ({
+      name: str(u.name), sets: num(u.saetze) || 3, reps: String(u.wdh || '10'), tip: str(u.hinweis),
+      how: { muscles: str(u.muskeln), setup: str(u.einstellen), steps: arr(u.ablauf), breath: str(u.atmung), mistakes: arr(u.fehler), start: str(u.startgewicht), alt: str(u.alternative) }
+    })).filter(u => u.name)
+  })).filter(t => t.exercises.length);
+  if (!daysArr.length) return false;
+  const days = daysArr.length;
+  db.plan = {
+    name: str(r.name) || 'Dein Plan', goal: meta.goal, daysPerWeek: days, level: meta.level, time: meta.time, notes: meta.notes, start: meta.start, days: daysArr,
+    weeks: Math.max(4, Math.min(16, num(r.wochen) || 10)),
+    phases: (r.phasen || []).map(p => ({ weeks: str(p.wochen), title: str(p.titel), note: str(p.hinweis) })).filter(p => p.weeks),
+    warmup: str(r.aufwaermen), cardio: str(r.ausdauer), tips: arr(r.ernaehrung), createdAt: Date.now()
+  };
+  if (db.settings.trainDays.length !== days) {
+    db.settings.trainDays = defaultTrainDays(days);
+    scheduleTraining(db.settings.trainDays, db.settings.trainTime, db.settings.remind).catch(() => {});
+  }
+  planSel = 0; restTotal = 0; $('#plan-setup').open = false; $('#p-hint').textContent = '';
+  save(); toast('Trainingsplan gespeichert');
+  $('#plan-view').scrollIntoView({ behavior: 'smooth' });
+  return true;
 }
 
 export function initTraining() {

@@ -34,7 +34,29 @@ function renderMeals() {
       xs.map(m => `<div class="item"><div class="main"><div class="t">${esc(m.name)}</div><div class="s">${m.kcal != null ? `<span class="kcal">${de(m.kcal)} kcal</span> · ` : ''}E ${de(m.protein)} · K ${de(m.carbs)} · F ${de(m.fat)} g</div></div><button type="button" class="del" data-mdel="${m.id}">Entfernen</button></div>`).join('');
   }).join('') + '</div>' : '<div class="empty">Noch nichts eingetragen. Sprich oder tipp oben ein, was du gegessen hast, oder hak im Wochenplan ein Gericht als gegessen ab.</div>';
   $$('[data-mdel]').forEach(b => b.onclick = () => { if (!armed(b)) return; db.meals = db.meals.filter(m => m.id !== b.dataset.mdel); save(); });
-  renderDishes();
+  renderQuick(); renderDishes();
+  // Ohne Schlüssel nur zeigen, was auch funktioniert.
+  const k = hasKey();
+  $('#m-est').hidden = !k; $('#m-photo').hidden = !k; $('#m-tipcard').hidden = !k;
+}
+
+/** Ein-Tipp-Eintragen: geplante Gerichte von heute, dann zuletzt Gegessenes und gemerkte Gerichte. */
+function renderQuick() {
+  const box = $('#m-quick'); const seen = new Set(); const items = [];
+  const push = (m, label) => { const k = m.name.toLowerCase(); if (seen.has(k) || items.length >= 10) return; seen.add(k); items.push({ ...m, label }); };
+  const eaten = new Set(db.meals.filter(m => m.date === S.day).map(m => m.name.toLowerCase()));
+  (db.mealplan?.days.find(d => d.date === S.day)?.meals || []).filter(m => !eaten.has(m.name.toLowerCase())).forEach(m => push(m, 'Plan'));
+  [...db.meals].sort((a, b) => b.at - a.at).filter(m => m.date !== S.day || true).forEach(m => push(m, ''));
+  db.dishes.forEach(m => push(m, ''));
+  if (!items.length) { box.hidden = true; return; }
+  box.hidden = false;
+  box.innerHTML = `<h3>Schnell eintragen</h3><div class="recent">${items.map((m, i) => `<button type="button" class="sm" data-quick="${i}">${m.label ? '<span class="tag">Plan</span> ' : ''}${esc(m.name.length > 28 ? m.name.slice(0, 27) + '…' : m.name)} · ${de(m.kcal)}</button>`).join('')}</div>
+    <p class="small muted">Ein Tipp trägt es für ${S.day === today() ? 'heute' : fmtDay(S.day)} ein (${guessSlot()}).</p>`;
+  box.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => {
+    const m = items[+b.dataset.quick];
+    logMeal({ slot: m.label ? m.slot : guessSlot(), name: m.name, kcal: m.kcal, protein: m.protein, carbs: m.carbs, fat: m.fat, parts: m.parts });
+    toast(`✓ ${m.name}`);
+  });
 }
 
 /* ---------- Bestandteile ---------- */
