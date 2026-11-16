@@ -22,6 +22,7 @@ import { startSync, connected, pull } from './sync.js';
 import { startUpdates, initUpdateCard } from './update.js';
 import { pollJobs } from './claude.js';
 import { initMealRemind } from './mealremind.js';
+import { startHealth } from './health.js';
 import { LocalNotifications } from '@capacitor/local-notifications';
 
 const TABS = ['training', 'essen', 'plan', 'einkauf', 'notizen', 'mehr'];
@@ -110,6 +111,7 @@ async function boot() {
     renderAll();
   });
   pollJobs();
+  startHealth();
   // Tipp auf eine Mahlzeiten-Erinnerung öffnet direkt „Essen“.
   if (isNative) LocalNotifications.addListener('localNotificationActionPerformed', e => { const t = e.notification?.extra?.tab; if (t) showTab(t); });
   if (isNative) App.addListener('resume', () => pollJobs());

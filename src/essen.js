@@ -1,5 +1,7 @@
 import { db, save } from './store.js';
 import { S, addRender, busy, kcalFor, sportBonus } from './app.js';
+import { Capacitor } from '@capacitor/core';
+import { connectHealth, syncHealth } from './health.js';
 import { $, $$, esc, de, num, uid, today, fmtDay, toast, armed } from './util.js';
 import { ask, askJSON, aiMsg, hasKey } from './claude.js';
 import { listen, takePhoto, scanBarcode, lookupFood } from './native.js';
@@ -173,18 +175,32 @@ Trainingsziel: ${db.plan?.goal || 'nicht angegeben'}. Heute trainiert: ${trained
 function renderActivity() {
   const a = db.activity?.[S.day] || {};
   ['kcal', 'steps'].forEach(k => { const el = $('#act-' + k); if (document.activeElement !== el) el.value = a[k] || ''; });
-  const b = sportBonus(S.day);
-  $('#act-hint').textContent = b ? `+${de(b)} kcal fürs Essen (die Hälfte der Sport-Kalorien).` : '';
+  const b = sportBonus(S.day), auto = db.settings.healthSync;
+  $('#act-sub').textContent = auto ? '· automatisch von der Uhr' : '· von der Uhr abtippen';
+  $('#act-hint').textContent = [b ? `+${de(b)} kcal fürs Essen (die Hälfte der Sport-Kalorien).` : '',
+    auto && a.src === 'hand' ? 'Von Hand geändert, wird nicht überschrieben.' : '',
+    auto && db.settings.healthAt ? `Abgeglichen ${new Date(db.settings.healthAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr.` : ''].filter(Boolean).join(' ');
+  $('#act-connect').hidden = auto || !Capacitor.isNativePlatform();
+  $('#act-sync').hidden = !auto;
 }
 function saveActivity() {
   const kcal = Math.max(0, Math.round(num($('#act-kcal').value) || 0)), steps = Math.max(0, Math.round(num($('#act-steps').value) || 0));
   db.activity = db.activity || {};
-  if (kcal || steps) db.activity[S.day] = { kcal, steps }; else delete db.activity[S.day];
+  if (kcal || steps) db.activity[S.day] = { kcal, steps, src: 'hand' }; else delete db.activity[S.day];
   save();
 }
 
 export function initEssen() {
   ['#act-kcal', '#act-steps'].forEach(i => $(i).addEventListener('change', saveActivity));
+  $('#act-connect').onclick = async () => {
+    try { const msg = await connectHealth(); toast(msg || 'Verbunden. Schritte und Sport-Kalorien kommen jetzt von selbst.'); }
+    catch (e) { toast('Verbinden hat nicht geklappt: ' + (e.message || e)); }
+    renderActivity();
+  };
+  $('#act-sync').onclick = async () => {
+    const a = db.activity?.[S.day]; if (a?.src === 'hand') a.src = 'uhr';
+    await syncHealth(); renderActivity(); toast('Mit der Uhr abgeglichen');
+  };
   $('#m-slot').value = guessSlot();
   macSum();
   ['#m-kcal', '#m-p'].forEach(i => $(i).addEventListener('input', macSum));
