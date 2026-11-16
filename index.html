@@ -23,6 +23,7 @@
 </header>
 
 <main>
+<div class="upd" id="upd" hidden role="status"></div>
 <div class="card hero" id="presets" hidden style="margin-bottom:14px"></div>
 <div class="notice" id="nokey" hidden>Pläne und Angebote erstellst du über die Claude-App, das kostet nichts extra: Auf „Plan erstellen“ tippen, Anfrage kopieren, Antwort einfügen. Mit einem API-Schlüssel geht es direkt in der App, dazu Teller-Foto und Belege auslesen.
   <div class="actions"><button type="button" class="sm" id="nokey-ok">Verstanden</button><button type="button" class="sm ghost" data-goto="einstellungen">Schlüssel eintragen</button></div></div>
@@ -340,6 +341,13 @@
       <p class="small muted">Die Einkaufsliste aus dem Wochenplan wird auf diese Tage aufgeteilt: Frisches zum Einkauf vor dem Kochtag, Haltbares beim ersten Einkauf.</p>
       <label class="plain" for="st-war"><input type="checkbox" id="st-war">30 Tage vor Garantie-Ende erinnern</label>
     </form>
+
+    <div class="card" id="up-card">
+      <h3>App-Updates</h3>
+      <p class="small muted">Neue Versionen kommen von selbst: Die App lädt sie im Hintergrund und startet beim nächsten Öffnen damit. Nur selten muss sie einmal neu installiert werden, dann zeigt sie oben einen Knopf.</p>
+      <p class="hint" id="up-info"></p>
+      <div class="actions"><button type="button" id="up-check">Jetzt nach Updates suchen</button></div>
+    </div>
 
     <div class="card">
       <h3>Datensicherung</h3>

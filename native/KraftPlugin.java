@@ -1,6 +1,10 @@
 package de.kraftkost.app;
 
 import android.content.Intent;
+import android.os.Build;
+import android.provider.Settings;
+import androidx.core.content.FileProvider;
+import java.io.File;
 import android.net.Uri;
 import android.provider.AlarmClock;
 import android.provider.CalendarContract;
@@ -77,5 +81,30 @@ public class KraftPlugin extends Plugin {
         i.putExtra(AlarmClock.EXTRA_MESSAGE, call.getString("message", "Satzpause"));
         i.putExtra(AlarmClock.EXTRA_SKIP_UI, true);
         launch(call, i);
+    }
+
+    /** Heruntergeladene APK dem Android-Installer übergeben. */
+    @PluginMethod
+    public void installApk(PluginCall call) {
+        try {
+            String path = call.getString("path", "");
+            File f = new File(Uri.parse(path).getPath());
+            if (!f.exists()) { call.reject("APK nicht gefunden", "missing"); return; }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !getContext().getPackageManager().canRequestPackageInstalls()) {
+                Intent s = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getContext().getPackageName()));
+                s.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(s);
+                call.reject("Installation nicht erlaubt", "permission");
+                return;
+            }
+            Uri uri = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", f);
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setDataAndType(uri, "application/vnd.android.package-archive");
+            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(i);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("Installation konnte nicht starten: " + e.getMessage(), "failed");
+        }
     }
 }

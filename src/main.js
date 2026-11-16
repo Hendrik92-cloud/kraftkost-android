@@ -19,6 +19,7 @@ import { initSupps } from './supps.js';
 const presets = import.meta.glob('./presets/*.json', { eager: true });
 import { toast } from './util.js';
 import { startSync, connected, pull } from './sync.js';
+import { startUpdates, initUpdateCard } from './update.js';
 
 const TABS = ['training', 'essen', 'plan', 'einkauf', 'notizen', 'mehr'];
 const history = [];
@@ -71,7 +72,8 @@ function showPresets() {
 
 async function boot() {
   await load();
-  initTraining(); initEssen(); initPlan(); initEinkauf(); initNotes(); initMehr(); initImporter(); initSupps();
+  if (await startUpdates()) return;
+  initTraining(); initEssen(); initPlan(); initEinkauf(); initNotes(); initMehr(); initImporter(); initSupps(); initUpdateCard();
   onChange(renderAll);
   startSync(() => S.tab === 'einkauf' || S.tab === 'plan');
   $('#gear').onclick = () => { tap(); showTab('mehr'); };

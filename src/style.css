@@ -205,3 +205,6 @@ nav.tabs button[aria-current="page"] svg{background:var(--accent-soft)}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:11px 18px;border-radius:999px;font-size:14px;font-weight:600;z-index:20;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.18)}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+.upd{display:flex;align-items:center;gap:12px;justify-content:space-between;background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--r);padding:10px 12px 10px 16px;margin-bottom:14px;font-weight:600}
+.upd[hidden]{display:none}
+.upd button{flex:none;min-height:40px;padding:0 14px}

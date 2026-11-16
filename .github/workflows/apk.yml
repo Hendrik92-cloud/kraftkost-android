@@ -15,6 +15,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      BUILD_NUMBER: ${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
 
@@ -37,9 +39,14 @@ jobs:
       - name: Web-Teil bauen
         run: npm run build
 
+      # Für Updates ohne Neuinstallation: Web-Teil als Paket plus Versionsangabe.
+      - name: Update-Paket packen
+        run: |
+          (cd dist && zip -qr ../web.zip .)
+          echo "{\"build\": ${BUILD_NUMBER}, \"native\": \"$(node scripts/native-hash.mjs)\"}" > version.json
+          cat version.json
+
       - name: Android-Projekt erzeugen
-        env:
-          BUILD_NUMBER: ${{ github.run_number }}
         run: |
           npx cap add android
           bash scripts/patch-android.sh
@@ -73,5 +80,8 @@ jobs:
           tag_name: build-${{ github.run_number }}
           name: Kraftkost ${{ github.run_number }}
           body: "Zum Installieren Kraftkost.apk auf dem Handy herunterladen und öffnen."
-          files: Kraftkost.apk
+          files: |
+            Kraftkost.apk
+            web.zip
+            version.json
           make_latest: true
