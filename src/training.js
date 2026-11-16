@@ -251,7 +251,10 @@ Form: {"art":"trainingsplan","name":"kurzer Planname","wochen":10,"phasen":[{"wo
     return;
   }
   await busy($('#p-go'), $('#p-hint'), 'Claude stellt deinen Plan zusammen. Das dauert etwa eine Minute …', async () => {
-    try { if (!applyPlan(await askJSON(prompt, { smart: true, maxTokens: 12000 }), meta)) throw new Error(); }
+    try { if (!applyPlan(await askJSON(prompt, { smart: true, maxTokens: 12000, onText: t => {
+      const d = (t.match(/"titel"\s*:\s*"Tag /g) || []).length, u = (t.match(/"ablauf"/g) || []).length;
+      if (u || d) $('#p-hint').textContent = `Claude schreibt: Trainingstag ${Math.max(d, 1)} von ${days}, ${u} Übungen erklärt …`;
+    } }), meta)) throw new Error(); }
     catch (err) { $('#p-hint').textContent = err.code ? aiMsg(err) : 'Der Plan kam unvollständig an. Versuch es nochmal.'; }
   });
 }

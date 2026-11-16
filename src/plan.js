@@ -180,7 +180,10 @@ Nährwerte je Mahlzeit für die Portion 1. Zutatenmengen sonst für den ganzen H
 ${bridge ? `Fasse außerdem alle Zutaten der Woche zu einer Einkaufsliste zusammen (gleiche addieren, auf Packungsgrößen runden, ohne Salz, Pfeffer, Gewürze, Öl, Mehl, Zucker) mit Kategorie aus: ${CATS.join(', ')}.\n` : ''}Form: {"art":"wochenplan","ziel_kcal":2500,"tage":[{"datum":"YYYY-MM-DD","mahlzeiten":[{"slot":"Frühstück","name":"…","kcal":550,"protein":35,"kohlenhydrate":60,"fett":15,"zeit":"10 min","zutaten":[{"name":"Haferflocken","menge":"200 g"}],"zubereitung":"2 bis 3 Sätze","kind_tipp":""}]}]${bridge ? ',"einkauf":[{"name":"Haferflocken","menge":"1 kg","kategorie":"Brot & Trockenware"}]' : ''}}`;
   if (bridge) { showBridge($('#mp-bridge'), prompt, r => applyMealPlan(r, ctx)); return; }
   await busy($('#mp-go'), $('#mp-hint'), 'Claude plant eure Woche. Das kann ein bis zwei Minuten dauern …', async () => {
-    try { if (!applyMealPlan(await askJSON(prompt, { smart: true, maxTokens: 16000 }), ctx)) throw new Error(); }
+    try { if (!applyMealPlan(await askJSON(prompt, { smart: true, maxTokens: 16000, onText: t => {
+      const n = (t.match(/"datum"/g) || []).length;
+      if (n) $('#mp-hint').textContent = `Claude schreibt: Tag ${Math.min(n, 7)} von 7 …`;
+    } }), ctx)) throw new Error(); }
     catch (err) { $('#mp-hint').textContent = err.code ? aiMsg(err) : 'Der Plan kam unvollständig an. Versuch es nochmal.'; }
   });
 }
