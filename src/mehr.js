@@ -206,6 +206,14 @@ function renderSettings() {
     const i = +b.dataset.std; s.trainDays = s.trainDays.includes(i) ? s.trainDays.filter(x => x !== i) : s.trainDays.concat(i).sort((a, c) => a - c);
     save(); reschedule();
   });
+  const sd = s.shopDays?.length ? s.shopDays : [0, 3];
+  $('#st-shopdays').innerHTML = WD.map((d, i) => `<button type="button" data-shd="${i}" aria-pressed="${sd.includes(i)}">${d}</button>`).join('');
+  $$('[data-shd]').forEach(b => b.onclick = () => {
+    const i = +b.dataset.shd; const cur = s.shopDays?.length ? s.shopDays : [0, 3];
+    const next = cur.includes(i) ? cur.filter(x => x !== i) : cur.concat(i).sort((a, c) => a - c);
+    if (!next.length) { toast('Mindestens ein Einkaufstag'); return; }
+    s.shopDays = next; save(); toast('Gilt ab der nächsten Einkaufsliste aus dem Wochenplan');
+  });
   renderHousehold(); renderFamily(); renderCompanies();
   $('#nokey').hidden = !!s.apiKey || !!s.keyNoticeSeen;
 }

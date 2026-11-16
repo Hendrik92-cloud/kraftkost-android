@@ -1,6 +1,7 @@
 import { db, save } from './store.js';
 import { addRender, busy } from './app.js';
-import { $, $$, esc, eur, uid, today, fmtDay, toast, words, de, daysUntil } from './util.js';
+import { $, $$, esc, eur, uid, today, addDays, wdOf, fmtDay, toast, words, de, daysUntil } from './util.js';
+import { prettyAmount } from './shopmath.js';
 import { askJSON, aiMsg, hasKey } from './claude.js';
 import { showBridge } from './bridge.js';
 import { listen } from './native.js';
@@ -9,14 +10,15 @@ export const CATS = ['Obst & Gemüse', 'Fleisch & Fisch', 'Kühlregal', 'Brot & 
 const STORES = ['Aldi', 'Lidl', 'Penny', 'Netto'];
 let storeFilter = 'Alle';
 
-/** Fügt Artikel hinzu, ohne Doppelte. Gibt die Anzahl neuer Einträge zurück. */
+/** Fügt Artikel hinzu, ohne Doppelte (gleicher Name im selben Einkauf). Gibt die Anzahl neuer Einträge zurück. */
 export function addShopItems(items) {
   let n = 0;
   items.forEach(it => {
     const name = String(it.name || '').trim(); if (!name) return;
-    const ex = live().find(x => !x.done && x.name.toLowerCase() === name.toLowerCase());
+    const trip = it.trip || '';
+    const ex = live().find(x => !x.done && x.name.toLowerCase() === name.toLowerCase() && (x.trip || '') === trip);
     if (ex) { if (it.amount && !ex.amount) { ex.amount = it.amount; touch(ex); } return; }
-    db.shop.push(touch({ id: uid(), name, amount: it.amount || '', cat: it.cat || guessCat(name), done: false }));
+    db.shop.push(touch({ id: uid(), name, amount: it.amount || '', cat: it.cat || guessCat(name), done: false, trip, src: it.src || '' }));
     n++;
   });
   if (n) save();
@@ -25,18 +27,35 @@ export function addShopItems(items) {
 /** Änderung für den Familien-Abgleich vormerken. */
 const touch = x => { x.updated = Date.now(); x.dirty = true; return x; };
 /** Einträge ohne die zum Löschen vorgemerkten. */
-const live = () => db.shop.filter(x => !x.deleted);
-const removeItem = x => { if (db.settings.sync) { x.deleted = true; touch(x); } else db.shop = db.shop.filter(s => s !== x); };
+export const live = () => db.shop.filter(x => !x.deleted);
+export const removeItem = x => { if (db.settings.sync) { x.deleted = true; touch(x); } else db.shop = db.shop.filter(s => s !== x); };
 const CAT_HINTS = [
-  ['Obst & Gemüse', /apfel|banane|beere|tomate|gurke|paprika|salat|zwiebel|knoblauch|kartoffel|möhre|karotte|brokkoli|zucchini|champignon|pilz|obst|gemüse|zitrone|spinat|kohl|lauch|avocado|birne|traube/i],
-  ['Fleisch & Fisch', /hähnchen|huhn|pute|rind|schwein|hack|fleisch|lachs|thunfisch|fisch|wurst|schinken|filet/i],
-  ['Kühlregal', /milch|joghurt|quark|käse|butter|sahne|ei(er)?\b|eier|skyr|frischkäse|mozzarella|feta|tofu/i],
-  ['Brot & Trockenware', /brot|brötchen|toast|nudel|pasta|reis|hafer|müsli|mehl|linsen|couscous|bulgur|wrap/i],
-  ['Tiefkühl', /tiefkühl|tk[- ]|gefror/i],
+  ['Tiefkühl', /tiefkühl|^tk[- ]|gefror/i],
+  ['Konserven & Vorrat', /thunfisch|dose|passierte|gehackte tomaten|kokosmilch|honig|kakao|brühe|marmelade|öl\b|essig|gewürz/i],
+  ['Kühlregal', /milch|joghurt|quark|käse|butter|sahne|schmand|\beier?\b|skyr|frischkäse|mozzarella|feta|parmesan|tofu|gnocchi|pizzateig|kochschinken|aufschnitt/i],
+  ['Obst & Gemüse', /apfel|äpfel|banane|beere|tomate|gurke|paprika|salat|zwiebel|knoblauch|kartoffel|möhre|karotte|brokkoli|zucchini|champignon|pilz|obst|gemüse|zitrone|spinat|kohl|lauch|avocado|birne|traube|kürbis/i],
+  ['Fleisch & Fisch', /hähnchen|huhn|pute|rind|schwein|hack|fleisch|lachs|fisch|wurst|schinken|filet/i],
+  ['Brot & Trockenware', /brot|brötchen|toast|nudel|pasta|penne|spaghetti|reis|hafer|müsli|mehl|linsen|couscous|bulgur|wrap/i],
   ['Getränke', /wasser|saft|kaffee|tee|cola|bier|getränk/i],
   ['Drogerie & Haushalt', /papier|spül|seife|zahn|shampoo|müll|tücher|waschmittel/i]
 ];
-const guessCat = n => (CAT_HINTS.find(([, re]) => re.test(n)) || ['Sonstiges'])[0];
+export const guessCat = n => (CAT_HINTS.find(([, re]) => re.test(n)) || ['Sonstiges'])[0];
+
+/* ---------- Zwei Einkäufe pro Woche ---------- */
+/** Einkaufstage, 0 = Montag. */
+export const shopDays = () => (db.settings.shopDays?.length ? db.settings.shopDays : [0, 3]).slice().sort((a, b) => a - b);
+/** Zu welchem Einkauf gehört ein Kochtag: der letzte Einkaufstag davor oder am selben Tag. Gibt dessen Datum zurück. */
+export function tripFor(date) {
+  const d = shopDays(); const wd = wdOf(date);
+  let best = d.filter(s => s <= wd).pop(); if (best == null) best = d[d.length - 1];
+  return addDays(date, -((wd - best + 7) % 7));
+}
+/** Was lange hält, wird einmal beim ersten Einkauf gekauft. */
+export const LASTING = new Set(['Brot & Trockenware', 'Konserven & Vorrat', 'Tiefkühl', 'Getränke', 'Drogerie & Haushalt', 'Sonstiges']);
+let tripSel = null;
+/** Hinzugefügtes landet im gerade gewählten Einkauf. */
+const curTrip = () => (tripSel && tripSel !== 'alle' ? tripSel : '');
+const tripLabel = t => new Date(t + 'T12:00').toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'numeric' });
 
 function matches(name) {
   const o = db.offers?.items || []; const ws = words(name); if (!ws.length) return [];
@@ -44,7 +63,14 @@ function matches(name) {
 }
 
 function renderShop() {
-  const it = live();
+  const all = live();
+  // Einkaufs-Auswahl: der nächste anstehende Einkauf, sonst der letzte
+  const trips = [...new Set(all.map(x => x.trip).filter(Boolean))].sort();
+  if (tripSel !== 'alle' && !trips.includes(tripSel)) tripSel = trips.find(t => t >= today()) || trips[trips.length - 1] || null;
+  $('#s-trips').hidden = trips.length < 2;
+  $('#s-trips').innerHTML = trips.map(t => `<button type="button" data-trip="${t}" aria-pressed="${tripSel === t}">${tripLabel(t)} · ${all.filter(x => x.trip === t && !x.done).length}</button>`).join('') + `<button type="button" data-trip="alle" aria-pressed="${tripSel === 'alle'}">Alle</button>`;
+  $$('[data-trip]').forEach(b => b.onclick = () => { tripSel = b.dataset.trip; renderShop(); });
+  const it = tripSel && tripSel !== 'alle' ? all.filter(x => !x.trip || x.trip === tripSel) : all;
   const box = $('#s-list');
   if (!it.length) { box.innerHTML = '<div class="empty">Die Liste ist leer. Sprich oder tipp oben etwas ein, oder lass sie aus dem Wochenplan erstellen.</div>'; }
   else {
@@ -55,7 +81,7 @@ function renderShop() {
       const m = x.done ? [] : matches(x.name);
       return `<div class="item ${x.done ? 'done' : ''}"><input type="checkbox" class="chk" id="s-${x.id}" data-chk="${x.id}" ${x.done ? 'checked' : ''}>
         <label for="s-${x.id}" class="main" style="display:block;text-transform:none;letter-spacing:0;font-size:inherit;color:inherit;font-weight:inherit">
-          <div class="t">${esc(x.name)}${x.amount ? ` <span class="s">${esc(x.amount)}</span>` : ''}</div>
+          <div class="t">${esc(x.name)}${x.amount ? ` <span class="amt">${esc(prettyAmount(x.amount))}</span>` : ''}${tripSel === 'alle' && x.trip ? ` <span class="chip mute">${tripLabel(x.trip).split(',')[0]}</span>` : ''}</div>
           ${m.length ? `<div class="chips">${m.map(o => `<span class="chip">${esc(o.store)} ${eur(o.price)}</span>`).join('')}</div>` : ''}
         </label><button type="button" class="del" data-srm="${x.id}" aria-label="Von der Liste nehmen">×</button></div>`;
     }).join('')).join('') + '</div>';
@@ -71,7 +97,7 @@ function renderHead(it) {
   const open = it.filter(x => !x.done), done = it.length - open.length;
   const inOffer = open.filter(x => matches(x.name).length).length;
   const cats = [...new Set(open.map(x => x.cat || 'Sonstiges'))].length;
-  $('#s-head').innerHTML = `<h3>Einkaufsliste</h3>
+  $('#s-head').innerHTML = `<h3>${tripSel && tripSel !== 'alle' ? 'Einkauf ' + esc(tripLabel(tripSel)) : 'Einkaufsliste'}</h3>
     <div class="bignum"><b>${open.length}</b><span>${open.length === 1 ? 'Sache fehlt' : 'Sachen fehlen'}${cats > 1 ? ` · ${cats} Bereiche im Laden` : ''}</span></div>
     ${it.length ? `<div class="progress"><div class="bar"><div class="fill" style="width:${it.length ? done / it.length * 100 : 0}%"></div></div><span>${done} von ${it.length} im Wagen</span></div>` : ''}
     <div class="chips">${inOffer ? `<span class="chip">${inOffer} im Angebot</span>` : ''}${db.settings.sync ? '<span class="chip t">mit der Familie geteilt</span>' : ''}${db.mealplan?.shopping?.length ? '<span class="chip mute">aus dem Wochenplan</span>' : ''}</div>`;
@@ -110,7 +136,7 @@ function renderOffers() {
   const xs = O.items.filter(o => storeFilter === 'Alle' || o.store.startsWith(storeFilter));
   list.innerHTML = xs.length ? '<div class="list">' + xs.map((o, i) => `<div class="item"><div class="main"><div class="tag">${esc(o.store)}</div><div class="t">${esc(o.name)}</div><div class="s">${[o.unit, o.valid].filter(Boolean).map(esc).join(' · ')}</div></div><span class="num">${o.oldPrice ? `<span class="old">${eur(o.oldPrice)}</span>` : ''}${eur(o.price)}</span><button type="button" class="ghost sm" data-addo="${i}" aria-label="Auf die Liste">+</button></div>`).join('') + '</div>'
     : '<div class="empty">Für diesen Laden ist gerade nichts eingetragen.</div>';
-  list.querySelectorAll('[data-addo]').forEach(b => b.onclick = () => { const o = xs[+b.dataset.addo]; toast(addShopItems([{ name: o.name }]) ? 'Auf die Liste gesetzt' : 'Steht schon auf der Liste'); });
+  list.querySelectorAll('[data-addo]').forEach(b => b.onclick = () => { const o = xs[+b.dataset.addo]; toast(addShopItems([{ name: o.name, trip: curTrip() }]) ? 'Auf die Liste gesetzt' : 'Steht schon auf der Liste'); });
 }
 
 async function searchOffers() {
@@ -151,13 +177,13 @@ export function initEinkauf() {
   $('#sform').onsubmit = e => {
     e.preventDefault();
     const v = $('#s-name').value.trim(); if (!v) return;
-    const n = addShopItems(v.split(',').map(s => ({ name: s.trim() })));
+    const n = addShopItems(v.split(',').map(s => ({ name: s.trim(), trip: curTrip() })));
     $('#s-name').value = ''; toast(n ? 'Auf die Liste gesetzt' : 'Steht schon auf der Liste');
   };
   $('#s-mic').onclick = async () => {
     try {
       const t = await listen('Zum Beispiel: Milch, Eier und Bananen'); if (!t) return;
-      const n = addShopItems(splitSpoken(t).map(name => ({ name })));
+      const n = addShopItems(splitSpoken(t).map(name => ({ name, trip: curTrip() })));
       toast(n ? `${n} ${n === 1 ? "Sache" : "Sachen"} auf die Liste gesetzt` : 'Steht schon alles drauf');
     } catch (e) { toast(e.message); }
   };

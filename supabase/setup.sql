@@ -12,6 +12,9 @@ create table if not exists public.kk_items (
   deleted boolean not null default false,
   updated_at bigint not null default 0
 );
+-- Ab Version 9: Einkaufstag und Herkunft
+alter table public.kk_items add column if not exists trip text not null default '';
+alter table public.kk_items add column if not exists src text not null default '';
 create index if not exists kk_items_household on public.kk_items (household);
 
 create table if not exists public.kk_docs (

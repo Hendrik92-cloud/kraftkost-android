@@ -42,7 +42,7 @@ export async function push() {
     if (items.length) {
       await rest(c, 'kk_items?on_conflict=id', {
         method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify(items.map(x => ({ id: x.id, household: c.household, name: x.name, amount: x.amount || '', cat: x.cat || 'Sonstiges', done: !!x.done, deleted: !!x.deleted, updated_at: x.updated || Date.now() })))
+        body: JSON.stringify(items.map(x => ({ id: x.id, household: c.household, name: x.name, amount: x.amount || '', cat: x.cat || 'Sonstiges', done: !!x.done, deleted: !!x.deleted, trip: x.trip || '', src: x.src || '', updated_at: x.updated || Date.now() })))
       });
       items.forEach(x => { delete x.dirty; });
     }
@@ -76,10 +76,10 @@ export async function pull() {
     for (const r of rows || []) {
       const l = db.shop.find(x => x.id === r.id);
       if (!l) {
-        if (!r.deleted) { db.shop.push({ id: r.id, name: r.name, amount: r.amount, cat: r.cat, done: r.done, updated: r.updated_at }); changed = true; }
+        if (!r.deleted) { db.shop.push({ id: r.id, name: r.name, amount: r.amount, cat: r.cat, done: r.done, trip: r.trip || '', src: r.src || '', updated: r.updated_at }); changed = true; }
       } else if (!l.dirty && r.updated_at > (l.updated || 0)) {
         if (r.deleted) db.shop = db.shop.filter(x => x.id !== r.id);
-        else Object.assign(l, { name: r.name, amount: r.amount, cat: r.cat, done: r.done, updated: r.updated_at });
+        else Object.assign(l, { name: r.name, amount: r.amount, cat: r.cat, done: r.done, trip: r.trip || '', src: r.src || '', updated: r.updated_at });
         changed = true;
       }
     }

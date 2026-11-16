@@ -13,7 +13,7 @@ export const defaults = () => ({
     kcalGoal: null, proteinGoal: null,
     trainDays: [0, 2, 4], trainTime: '18:00', trainMinutes: 60, remind: false, warrantyRemind: true,
     plz: '', apiKey: '', sync: null, companies: [],
-    habits: '', supps: [], suppTimes: { morgens: '07:00', abends: '21:00' }, suppRemind: true,
+    shopDays: [0, 3], habits: '', supps: [], suppTimes: { morgens: '07:00', abends: '21:00' }, suppRemind: true,
     modelQuick: 'claude-haiku-5-5', modelSmart: 'claude-sonnet-5-5',
     household: [
       { id: 'ich', name: 'Ich', kind: 'adult', factor: 1, likes: '', dislikes: '' },

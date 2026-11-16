@@ -4,7 +4,8 @@ import { $, $$, esc, de, num, uid, today, addDays, fmtDay, toast, WD, wdOf } fro
 import { askJSON, aiMsg, hasKey } from './claude.js';
 import { showBridge } from './bridge.js';
 import { logMeal } from './essen.js';
-import { addShopItems, CATS } from './einkauf.js';
+import { addShopItems, CATS, live, removeItem, guessCat, tripFor, LASTING } from './einkauf.js';
+import { sumAmounts, nameKey } from './shopmath.js';
 import { scheduleTraining } from './native.js';
 
 let sel = null, editing = null;
@@ -119,39 +120,37 @@ Form: {"slot":"${m.slot}","name":"…","kcal":600,"protein":40,"kohlenhydrate":6
   });
 }
 
-function localMerge(lines) {
-  const map = new Map();
-  lines.forEach(z => { const k = z.name.toLowerCase().trim(); const e = map.get(k); if (e) { if (z.amount) e.amount = e.amount ? e.amount + ' + ' + z.amount : z.amount; } else map.set(k, { name: z.name, amount: z.amount, cat: 'Sonstiges' }); });
-  return [...map.values()];
-}
-async function buildShopping(P) {
+/* Grundvorräte, die nicht auf die Liste sollen */
+const PANTRY = /^(salz|pfeffer|öl|olivenöl|rapsöl|essig|mehl|zucker|wasser|gewürze?|oregano|zimt|curry|paprikapulver|kreuzkümmel|sojasoße|brühe)$/i;
+
+/**
+ * Einkaufsliste aus dem Plan, aufgeteilt auf die Einkaufstage (Standard Mo + Do):
+ * Frisches zum Einkauf vor dem Kochtag, Haltbares einmal beim ersten Einkauf. Mengen werden zusammengerechnet.
+ * Eine frühere Liste aus dem Plan wird dabei ersetzt; Abgehaktes und selbst Hinzugefügtes bleibt.
+ */
+function buildShopping(P) {
   const from = P.days.some(d => d.date >= today()) ? today() : P.days[0].date;
-  const lines = P.days.filter(d => d.date >= from).flatMap(d => d.meals.flatMap(m => m.ingredients));
-  if (!lines.length) { toast('Im Plan stehen keine Zutaten.'); return; }
-  const hint = $('#mp-shophint');
-  // Ohne Schlüssel: die mitgelieferte Liste nehmen (stimmt, solange nichts getauscht wurde), sonst lokal zusammenführen.
-  // Mitgelieferte Liste nehmen, solange nichts getauscht oder geändert wurde: kostet kein Guthaben.
-  const fresh = P.shopping?.length && !P.shopStale;
-  if (fresh || !hasKey()) {
-    const n = addShopItems(fresh ? P.shopping : localMerge(lines));
-    toast(n ? `${n} ${n === 1 ? 'Sache' : 'Sachen'} auf die Einkaufsliste gesetzt` : 'Alles steht schon auf der Liste');
-    return;
-  }
-  await busy($('#mp-shop'), hint, 'Claude fasst die Zutaten zusammen …', async () => {
-    let items;
-    try {
-      const r = await askJSON(`Fasse diese Zutaten aus einem Wochen-Essensplan zu einer Einkaufsliste zusammen. Gleiche Zutaten addieren und auf übliche Packungsgrößen im Discounter runden. Grundvorräte wie Salz, Pfeffer, Gewürze, Öl, Essig, Mehl und Zucker weglassen.
-Kategorien: ${CATS.join(', ')}.
-Zutaten:
-${lines.map(z => `- ${z.amount ? z.amount + ' ' : ''}${z.name}`).join('\n')}
-Form: {"einkauf":[{"name":"Haferflocken","menge":"1 kg","kategorie":"Brot & Trockenware"}]}`, { maxTokens: 3000 });
-      items = (r.einkauf || []).map(s => ({ name: String(s.name || ''), amount: String(s.menge || ''), cat: CATS.includes(s.kategorie) ? s.kategorie : 'Sonstiges' })).filter(s => s.name);
-      if (!items.length) throw new Error();
-    } catch { items = localMerge(lines); }
-    const n = addShopItems(items);
-    hint.textContent = '';
-    toast(n ? `${n} ${n === 1 ? 'Sache' : 'Sachen'} auf die Einkaufsliste gesetzt` : 'Alles steht schon auf der Liste');
-  });
+  const days = P.days.filter(d => d.date >= from);
+  if (!days.some(d => d.meals.some(m => m.ingredients.length))) { toast('Im Plan stehen keine Zutaten.'); return; }
+  const catOf = new Map((P.shopping || []).map(x => [nameKey(x.name), x.cat]));
+  const first = tripFor(days[0].date);
+  const groups = new Map();
+  days.forEach(d => d.meals.forEach(m => m.ingredients.forEach(z => {
+    if (PANTRY.test(z.name.trim())) return;
+    const k = nameKey(z.name); const cat = catOf.get(k) || guessCat(z.name);
+    const trip = LASTING.has(cat) ? first : tripFor(d.date);
+    const g = groups.get(trip + '|' + k) || { name: z.name, cat, trip, amts: [] };
+    g.amts.push(z.amount); groups.set(trip + '|' + k, g);
+  })));
+  // Alte Plan-Einträge (offen) ersetzen
+  const planKeys = new Set([...groups.values()].map(g => nameKey(g.name)).concat((P.shopping || []).map(x => nameKey(x.name))));
+  live().filter(x => !x.done && (x.src === 'plan' || (!x.src && planKeys.has(nameKey(x.name))))).forEach(removeItem);
+  const items = [...groups.values()].sort((a, b) => a.trip.localeCompare(b.trip)).map(g => ({ name: g.name, amount: sumAmounts(g.amts), cat: g.cat, trip: g.trip, src: 'plan' }));
+  addShopItems(items);
+  const trips = [...new Set(items.map(x => x.trip))];
+  const lbl = t => new Date(t + 'T12:00').toLocaleDateString('de-DE', { weekday: 'short' });
+  save();
+  toast(trips.length > 1 ? `Einkaufsliste erstellt: ${trips.map(t => `${lbl(t)} ${items.filter(x => x.trip === t).length}`).join(', ')} Sachen` : `${items.length} Sachen auf der Einkaufsliste`);
 }
 
 async function createPlan(e) {

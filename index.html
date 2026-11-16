@@ -153,6 +153,7 @@
 <!-- EINKAUF -->
 <section class="tab" id="tab-einkauf" hidden>
   <div class="card hero" id="s-head"></div>
+  <div class="filter seg" id="s-trips" hidden></div>
   <form class="card" id="sform" autocomplete="off">
     <div class="inputmic">
       <label for="s-name">Auf die Liste<input id="s-name" placeholder="z. B. Magerquark, Bananen"></label>
@@ -335,6 +336,8 @@
         <label for="st-plz">Postleitzahl<input id="st-plz" inputmode="numeric" maxlength="5" placeholder="z. B. 49074"></label>
         <div class="bottom"><button type="submit">Speichern</button></div>
       </div>
+      <div><div class="lbl">Einkaufstage</div><div class="filter" id="st-shopdays"></div></div>
+      <p class="small muted">Die Einkaufsliste aus dem Wochenplan wird auf diese Tage aufgeteilt: Frisches zum Einkauf vor dem Kochtag, Haltbares beim ersten Einkauf.</p>
       <label class="plain" for="st-war"><input type="checkbox" id="st-war">30 Tage vor Garantie-Ende erinnern</label>
     </form>
 
