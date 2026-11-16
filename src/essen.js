@@ -1,5 +1,5 @@
 import { db, save } from './store.js';
-import { S, addRender, busy } from './app.js';
+import { S, addRender, busy, kcalFor } from './app.js';
 import { $, $$, esc, de, num, uid, today, fmtDay, toast, armed } from './util.js';
 import { ask, askJSON, aiMsg, hasKey } from './claude.js';
 import { listen, takePhoto, scanBarcode, lookupFood } from './native.js';
@@ -26,14 +26,15 @@ function meter(label, val, goal, unit, cls) {
 function renderMeals() {
   const { M, kcal, protein, carbs, fat } = dayTotals(); M.sort((a, b) => a.at - b.at);
   const g = db.settings;
-  const left = g.kcalGoal ? g.kcalGoal - kcal : null;
+  const goal = kcalFor(S.day);
+  const left = goal ? goal - kcal : null;
   const big = left == null
     ? `<div class="bignum"><b>${de(kcal)}</b><span>kcal gegessen</span></div>`
-    : left >= 0 ? `<div class="bignum"><b>${de(left)}</b><span>kcal übrig von ${de(g.kcalGoal)}</span></div>`
+    : left >= 0 ? `<div class="bignum"><b>${de(left)}</b><span>kcal übrig von ${de(goal)}</span></div>`
     : `<div class="bignum"><b class="kcal">${de(-left)}</b><span>kcal über dem Ziel</span></div>`;
   $('#m-summary').innerHTML = `<h3>${S.day === today() ? 'Heute' : fmtDay(S.day)}</h3>` + big +
-    meter('Kalorien', kcal, g.kcalGoal, 'kcal', '') + meter('Eiweiß', protein, g.proteinGoal, 'g', 'p') +
-    `<p class="small muted">Kohlenhydrate ${de(carbs)} g · Fett ${de(fat)} g${!g.kcalGoal ? ' · Tagesziele legst du über das Zahnrad fest.' : ''}</p>`;
+    meter('Kalorien', kcal, goal, 'kcal', '') + meter('Eiweiß', protein, g.proteinGoal, 'g', 'p') +
+    `<p class="small muted">Kohlenhydrate ${de(carbs)} g · Fett ${de(fat)} g${!goal ? ' · Tagesziele legst du über das Zahnrad fest.' : ''}</p>`;
   $('#m-list').innerHTML = M.length ? '<div class="list">' + SLOTS.map(sl => {
     const xs = M.filter(m => m.slot === sl); if (!xs.length) return '';
     return `<div class="group-h"><span>${sl}</span><span class="num">${de(xs.reduce((s, m) => s + (m.kcal || 0), 0))} kcal</span></div>` +
@@ -160,7 +161,7 @@ async function getTip() {
 Tag: ${S.day === today() ? 'heute' : fmtDay(S.day)}, Uhrzeit ${new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}.
 Bisher gegessen: ${M.length ? M.map(m => `${m.name} (${de(m.kcal)} kcal)`).join('; ') : 'noch nichts eingetragen'}.
 Summe: ${de(kcal)} kcal, ${de(protein)} g Eiweiß, ${de(carbs)} g Kohlenhydrate, ${de(fat)} g Fett.
-Tagesziele: ${g.kcalGoal ? de(g.kcalGoal) + ' kcal' : 'keins'}, ${g.proteinGoal ? de(g.proteinGoal) + ' g Eiweiß' : 'kein Eiweißziel'}.
+Tagesziel heute: ${kcalFor(S.day) ? de(kcalFor(S.day)) + ' kcal' : 'keins'}, ${g.proteinGoal ? de(g.proteinGoal) + ' g Eiweiß' : 'kein Eiweißziel'}.
 ${planned.length ? 'Laut Wochenplan heute noch vorgesehen: ' + planned.join('; ') + '.' : ''}
 Trainingsziel: ${db.plan?.goal || 'nicht angegeben'}. Heute trainiert: ${trained.length ? trained.join(', ') : 'nein'}.`, { maxTokens: 500 });
       out.innerHTML = `<div class="ai">${esc(r.text)}</div>`;

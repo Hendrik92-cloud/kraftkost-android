@@ -20,6 +20,17 @@ export const lastWeight = () => {
   return k.length ? k[k.length - 1].kg : null;
 };
 
+/** Kalorienziel für einen Tag: am Wochenende das eigene Wochenendziel, falls gesetzt. */
+export const kcalFor = date => {
+  const s = db.settings; const wd = new Date(date + 'T12:00').getDay();
+  return (wd === 0 || wd === 6) && s.kcalWeekend ? s.kcalWeekend : s.kcalGoal;
+};
+export const kcalText = () => {
+  const s = db.settings;
+  if (!s.kcalGoal) return '';
+  return s.kcalWeekend ? `Mo–Fr ${s.kcalGoal.toLocaleString('de-DE')} kcal, Sa/So ${s.kcalWeekend.toLocaleString('de-DE')} kcal` : `${s.kcalGoal.toLocaleString('de-DE')} kcal`;
+};
+
 export const me = () => db.settings.household.find(p => p.id === 'ich') || db.settings.household[0];
 export const familyFactor = () => db.settings.household.reduce((s, p) => s + (Number(p.factor) || 0), 0) || 1;
 export const householdText = () => db.settings.household.map(p => {

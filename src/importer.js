@@ -16,6 +16,13 @@ function applySettings(e) {
     done.push('Gewicht');
   }
   if (num(e.kcal)) { s.kcalGoal = num(e.kcal); done.push('Kalorienziel'); }
+  if (num(e.kcal_wochenende)) { s.kcalWeekend = num(e.kcal_wochenende); }
+  // Vorlieben im Haushalt: {"ich": {"mag": "…"}, "frau": {"mag_nicht": "…"}}
+  if (e.vorlieben) for (const [id, v] of Object.entries(e.vorlieben)) {
+    const p = s.household.find(x => x.id === id); if (!p) continue;
+    if (v.mag) p.likes = v.mag; if (v.mag_nicht) p.dislikes = v.mag_nicht;
+    if (!done.includes('Vorlieben')) done.push('Vorlieben');
+  }
   if (num(e.eiweiss)) { s.proteinGoal = num(e.eiweiss); done.push('Eiweißziel'); }
   if (Array.isArray(e.trainingstage) && e.trainingstage.length) {
     const days = e.trainingstage.map(d => WD.indexOf(String(d).slice(0, 2))).filter(i => i >= 0).sort((a, b) => a - b);

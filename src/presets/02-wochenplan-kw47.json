@@ -1,0 +1,206 @@
+{
+  "id": "wochenplan-2026-11-16",
+  "art": "paket",
+  "einstellungen": {
+    "kcal": 1900,
+    "kcal_wochenende": 2300,
+    "eiweiss": 140,
+    "vorlieben": {
+      "ich": { "mag": "Thunfisch, körniger Frischkäse, Rinderfilet, Hähnchen" },
+      "frau": { "mag_nicht": "Thunfisch, körniger Frischkäse, Rinderfilet; Hähnchen nur selten" }
+    }
+  },
+  "wochenplan": {
+    "art": "wochenplan",
+    "ziel_kcal": 1900,
+    "tage": [
+      {
+        "datum": "2026-11-16",
+        "mahlzeiten": [
+          { "slot": "Frühstück", "nur_ich": true, "name": "Körniger Frischkäse mit Haferflocken und Beeren", "kcal": 420, "protein": 34, "kohlenhydrate": 48, "fett": 10, "zeit": "5 min",
+            "zutaten": [{ "name": "Körniger Frischkäse", "menge": "200 g" }, { "name": "Haferflocken", "menge": "40 g" }, { "name": "TK-Beeren", "menge": "100 g" }],
+            "zubereitung": "Beeren kurz antauen lassen, alles in einer Schüssel mischen. Wer mag, mit etwas Zimt." },
+          { "slot": "Mittag", "nur_ich": true, "name": "Thunfisch-Bohnen-Salat mit Vollkornbrot", "kcal": 520, "protein": 46, "kohlenhydrate": 48, "fett": 13, "zeit": "10 min",
+            "zutaten": [{ "name": "Thunfisch naturell", "menge": "1 Dose" }, { "name": "Kidneybohnen", "menge": "½ Dose" }, { "name": "Mais", "menge": "50 g" }, { "name": "Gurke", "menge": "½" }, { "name": "Paprika", "menge": "½" }, { "name": "Vollkornbrot", "menge": "1 Scheibe" }],
+            "zubereitung": "Thunfisch und Bohnen abtropfen lassen, Gemüse würfeln, mit 1 TL Olivenöl, Salz, Pfeffer und etwas Zitrone mischen. In eine Dose, Brot dazu." },
+          { "slot": "Abend", "name": "Gnocchi-Pfanne mit Champignons und Spinat", "kcal": 650, "protein": 22, "kohlenhydrate": 92, "fett": 18, "zeit": "25 min",
+            "zutaten": [{ "name": "Gnocchi", "menge": "600 g" }, { "name": "Champignons", "menge": "400 g" }, { "name": "TK-Blattspinat", "menge": "300 g" }, { "name": "Kochsahne 15 %", "menge": "200 ml" }, { "name": "Parmesan", "menge": "30 g" }, { "name": "Zwiebel", "menge": "1" }],
+            "zubereitung": "Gnocchi in der Pfanne goldbraun braten, rausnehmen. Zwiebel und Champignons anbraten, Spinat dazu, mit Kochsahne ablöschen. Gnocchi unterheben, Parmesan drüber.",
+            "kind_tipp": "Für ihn ein paar extra Champignons, die mag er." },
+          { "slot": "Snack", "nur_ich": true, "name": "Skyr mit Apfel und Zimt", "kcal": 280, "protein": 28, "kohlenhydrate": 36, "fett": 1, "zeit": "3 min",
+            "zutaten": [{ "name": "Skyr natur", "menge": "250 g" }, { "name": "Apfel", "menge": "1" }],
+            "zubereitung": "Apfel klein schneiden, mit Skyr und Zimt mischen." }
+        ]
+      },
+      {
+        "datum": "2026-11-17",
+        "mahlzeiten": [
+          { "slot": "Frühstück", "nur_ich": true, "name": "Rührei mit Vollkorntoast und Tomate", "kcal": 430, "protein": 27, "kohlenhydrate": 30, "fett": 21, "zeit": "8 min",
+            "zutaten": [{ "name": "Eier", "menge": "3" }, { "name": "Vollkorntoast", "menge": "2 Scheiben" }, { "name": "Tomate", "menge": "1" }],
+            "zubereitung": "Eier verquirlen, in einer beschichteten Pfanne ohne Fett stocken lassen. Mit Toast und Tomate." },
+          { "slot": "Mittag", "nur_ich": true, "name": "Couscous-Salat mit Hähnchen und Feta", "kcal": 560, "protein": 44, "kohlenhydrate": 55, "fett": 16, "zeit": "15 min (am Vorabend)",
+            "zutaten": [{ "name": "Couscous", "menge": "70 g" }, { "name": "Hähnchenbrust", "menge": "150 g" }, { "name": "Gurke", "menge": "½" }, { "name": "Paprika", "menge": "½" }, { "name": "Feta", "menge": "30 g" }, { "name": "Zitrone", "menge": "½" }],
+            "zubereitung": "Vorkochen am Montagabend: Couscous mit heißem Wasser übergießen, Hähnchen in Streifen braten. Gemüse und Feta würfeln, alles mit Zitronensaft mischen, in eine Dose." },
+          { "slot": "Abend", "name": "Kartoffel-Gemüse-Auflauf mit Rinderhack", "kcal": 640, "protein": 38, "kohlenhydrate": 55, "fett": 28, "zeit": "20 min + 30 min Ofen",
+            "zutaten": [{ "name": "Rinderhack, mager", "menge": "500 g" }, { "name": "Kartoffeln", "menge": "1,2 kg" }, { "name": "Zucchini", "menge": "1" }, { "name": "Möhren", "menge": "3" }, { "name": "Passierte Tomaten", "menge": "500 g" }, { "name": "Geriebener Käse light", "menge": "100 g" }],
+            "zubereitung": "Vorkochen: Doppelte Portion für dein Mittagessen am Mittwoch. Kartoffeln in Scheiben vorkochen. Hack krümelig braten, Gemüse dazu, mit Tomaten köcheln. Abwechselnd schichten, Käse drauf, bei 200 °C 30 Minuten backen.",
+            "kind_tipp": "Möhren fein raspeln, dann verschwinden sie in der Soße." },
+          { "slot": "Snack", "nur_ich": true, "name": "Körniger Frischkäse mit Gurke", "kcal": 210, "protein": 24, "kohlenhydrate": 8, "fett": 8, "zeit": "2 min",
+            "zutaten": [{ "name": "Körniger Frischkäse", "menge": "200 g" }, { "name": "Gurke", "menge": "½" }],
+            "zubereitung": "Gurke würfeln, mit körnigem Frischkäse, Salz und Pfeffer mischen." }
+        ]
+      },
+      {
+        "datum": "2026-11-18",
+        "mahlzeiten": [
+          { "slot": "Frühstück", "nur_ich": true, "name": "Overnight Oats mit Skyr und Banane", "kcal": 430, "protein": 30, "kohlenhydrate": 62, "fett": 8, "zeit": "5 min (am Vorabend)",
+            "zutaten": [{ "name": "Haferflocken", "menge": "50 g" }, { "name": "Skyr natur", "menge": "150 g" }, { "name": "Banane", "menge": "1" }, { "name": "Milch 1,5 %", "menge": "100 ml" }],
+            "zubereitung": "Abends Haferflocken, Skyr und Milch verrühren, über Nacht in den Kühlschrank. Morgens Banane drauf." },
+          { "slot": "Mittag", "nur_ich": true, "name": "Rest vom Kartoffel-Hack-Auflauf", "kcal": 560, "protein": 33, "kohlenhydrate": 48, "fett": 24, "zeit": "aufwärmen",
+            "zutaten": [],
+            "zubereitung": "Vom Dienstagabend. In der Mikrowelle oder im Topf aufwärmen." },
+          { "slot": "Abend", "name": "Vollkorn-Spaghetti mit Gemüse-Tomatensoße und Mozzarella", "kcal": 620, "protein": 27, "kohlenhydrate": 90, "fett": 15, "zeit": "25 min",
+            "zutaten": [{ "name": "Vollkorn-Spaghetti", "menge": "500 g" }, { "name": "Passierte Tomaten", "menge": "500 g" }, { "name": "Zucchini", "menge": "1" }, { "name": "Paprika", "menge": "1" }, { "name": "Mozzarella light", "menge": "125 g" }, { "name": "Zwiebel", "menge": "1" }],
+            "zubereitung": "Spaghetti kochen. Zwiebel, Zucchini und Paprika klein würfeln und anbraten, Tomaten dazu, 10 Minuten köcheln. Mozzarella zerzupfen und über die Nudeln geben.",
+            "kind_tipp": "Soße pürieren, dann sieht man kein Gemüse." },
+          { "slot": "Snack", "nur_ich": true, "name": "Magerquark mit Beeren", "kcal": 230, "protein": 32, "kohlenhydrate": 18, "fett": 1, "zeit": "3 min",
+            "zutaten": [{ "name": "Magerquark", "menge": "250 g" }, { "name": "TK-Beeren", "menge": "100 g" }],
+            "zubereitung": "Quark mit einem Schluck Wasser glatt rühren, Beeren unterheben." }
+        ]
+      },
+      {
+        "datum": "2026-11-19",
+        "mahlzeiten": [
+          { "slot": "Frühstück", "nur_ich": true, "name": "Vollkornbrot mit körnigem Frischkäse, Tomate und Ei", "kcal": 410, "protein": 30, "kohlenhydrate": 38, "fett": 14, "zeit": "10 min",
+            "zutaten": [{ "name": "Vollkornbrot", "menge": "2 Scheiben" }, { "name": "Körniger Frischkäse", "menge": "100 g" }, { "name": "Tomate", "menge": "1" }, { "name": "Eier", "menge": "1" }],
+            "zubereitung": "Ei hart kochen. Brot mit körnigem Frischkäse bestreichen, Tomate und Ei in Scheiben drauf." },
+          { "slot": "Mittag", "nur_ich": true, "name": "Hähnchen-Reis-Bowl mit Paprika und Joghurtsoße", "kcal": 560, "protein": 48, "kohlenhydrate": 60, "fett": 11, "zeit": "20 min (am Vorabend)",
+            "zutaten": [{ "name": "Hähnchenbrust", "menge": "150 g" }, { "name": "Reis", "menge": "70 g" }, { "name": "Paprika", "menge": "1" }, { "name": "Naturjoghurt 1,5 %", "menge": "100 g" }],
+            "zubereitung": "Vorkochen am Mittwochabend: Reis kochen, Hähnchen und Paprika in Streifen braten. Joghurt mit Salz, Pfeffer und Knoblauch verrühren, getrennt einpacken." },
+          { "slot": "Abend", "name": "Mildes Chili sin Carne mit Reis", "kcal": 620, "protein": 26, "kohlenhydrate": 90, "fett": 14, "zeit": "30 min",
+            "zutaten": [{ "name": "Kidneybohnen", "menge": "2 Dosen" }, { "name": "Mais", "menge": "1 Dose" }, { "name": "Paprika", "menge": "2" }, { "name": "Zwiebel", "menge": "2" }, { "name": "Gehackte Tomaten", "menge": "2 Dosen" }, { "name": "Reis", "menge": "300 g" }, { "name": "Schmand light", "menge": "1 Becher" }],
+            "zubereitung": "Vorkochen: Doppelte Portion für dein Mittagessen am Freitag. Zwiebeln und Paprika anbraten, Tomaten, Bohnen und Mais dazu, 20 Minuten köcheln. Mit Paprikapulver und Kreuzkümmel würzen. Mit Reis und einem Klecks Schmand.",
+            "kind_tipp": "Mild würzen, Chili nur auf die Teller der Erwachsenen." },
+          { "slot": "Snack", "name": "Nachtisch: Schoko-Quarkcreme mit Banane", "kcal": 260, "protein": 28, "kohlenhydrate": 26, "fett": 3, "zeit": "5 min",
+            "zutaten": [{ "name": "Magerquark", "menge": "500 g" }, { "name": "Backkakao", "menge": "2 EL" }, { "name": "Bananen", "menge": "2" }, { "name": "Milch 1,5 %", "menge": "100 ml" }],
+            "zubereitung": "Quark mit Milch, Kakao und einer zerdrückten Banane glatt rühren, die zweite Banane in Scheiben drauf. Wer es süßer mag, etwas Honig.",
+            "kind_tipp": "Schmeckt wie Schokopudding, kommt bei Kindern gut an." }
+        ]
+      },
+      {
+        "datum": "2026-11-20",
+        "mahlzeiten": [
+          { "slot": "Frühstück", "nur_ich": true, "name": "Körniger Frischkäse mit Haferflocken und Beeren", "kcal": 420, "protein": 34, "kohlenhydrate": 48, "fett": 10, "zeit": "5 min",
+            "zutaten": [{ "name": "Körniger Frischkäse", "menge": "200 g" }, { "name": "Haferflocken", "menge": "40 g" }, { "name": "TK-Beeren", "menge": "100 g" }],
+            "zubereitung": "Beeren kurz antauen lassen, alles in einer Schüssel mischen." },
+          { "slot": "Mittag", "nur_ich": true, "name": "Rest vom Chili sin Carne", "kcal": 560, "protein": 24, "kohlenhydrate": 82, "fett": 13, "zeit": "aufwärmen",
+            "zutaten": [],
+            "zubereitung": "Vom Donnerstagabend, mit dem restlichen Reis aufwärmen." },
+          { "slot": "Abend", "name": "Pizza-Abend: Pizza mit Champignons, Schinken und Paprika", "kcal": 700, "protein": 38, "kohlenhydrate": 75, "fett": 25, "zeit": "15 min + 15 min Ofen",
+            "zutaten": [{ "name": "Pizzateig (Kühlregal)", "menge": "2 Rollen" }, { "name": "Passierte Tomaten", "menge": "200 g" }, { "name": "Champignons", "menge": "250 g" }, { "name": "Kochschinken", "menge": "150 g" }, { "name": "Mozzarella light", "menge": "2 × 125 g" }, { "name": "Paprika", "menge": "1" }],
+            "zubereitung": "Teig ausrollen, Tomaten mit Oregano drauf, belegen und bei 220 °C etwa 12–15 Minuten backen. Deine Portion: ein Viertel weniger Teig, dafür mehr Belag.",
+            "kind_tipp": "Er darf seine Hälfte selbst belegen." },
+          { "slot": "Snack", "nur_ich": true, "name": "Skyr mit Apfel", "kcal": 180, "protein": 18, "kohlenhydrate": 24, "fett": 1, "zeit": "2 min",
+            "zutaten": [{ "name": "Skyr natur", "menge": "150 g" }, { "name": "Apfel", "menge": "1" }],
+            "zubereitung": "Apfel in Spalten zum Skyr." }
+        ]
+      },
+      {
+        "datum": "2026-11-21",
+        "mahlzeiten": [
+          { "slot": "Frühstück", "name": "Pfannkuchen mit Quark und Beeren", "kcal": 600, "protein": 32, "kohlenhydrate": 72, "fett": 18, "zeit": "25 min",
+            "zutaten": [{ "name": "Eier", "menge": "4" }, { "name": "Milch 1,5 %", "menge": "300 ml" }, { "name": "Mehl", "menge": "150 g" }, { "name": "Magerquark", "menge": "250 g" }, { "name": "TK-Beeren", "menge": "200 g" }],
+            "zubereitung": "Eier, Milch und Mehl zu einem Teig verrühren, dünne Pfannkuchen backen. Quark mit etwas Honig glatt rühren, mit warmen Beeren dazu.",
+            "kind_tipp": "Mit Puderzucker oder etwas Ahornsirup, dann ist es ein Fest." },
+          { "slot": "Mittag", "nur_ich": true, "name": "Thunfisch-Wrap mit körnigem Frischkäse", "kcal": 560, "protein": 48, "kohlenhydrate": 48, "fett": 15, "zeit": "10 min",
+            "zutaten": [{ "name": "Vollkorn-Wraps", "menge": "2" }, { "name": "Thunfisch naturell", "menge": "1 Dose" }, { "name": "Körniger Frischkäse", "menge": "100 g" }, { "name": "Kopfsalat", "menge": "ein paar Blätter" }, { "name": "Tomate", "menge": "1" }],
+            "zubereitung": "Thunfisch mit körnigem Frischkäse, Salz und Pfeffer mischen. Wraps mit Salat, Tomate und Thunfischcreme füllen, einrollen." },
+          { "slot": "Abend", "name": "Rinderfilet mit Ofenkartoffeln, grünen Bohnen und Kräuterquark", "kcal": 850, "protein": 58, "kohlenhydrate": 70, "fett": 32, "zeit": "45 min",
+            "zutaten": [{ "name": "Rinderfilet", "menge": "250 g" }, { "name": "Rinderhack, mager", "menge": "300 g" }, { "name": "Eier", "menge": "1" }, { "name": "Kartoffeln", "menge": "1 kg" }, { "name": "TK grüne Bohnen", "menge": "450 g" }, { "name": "Kräuterquark", "menge": "200 g" }],
+            "zubereitung": "Kartoffeln vierteln, mit etwas Öl und Salz bei 200 °C 35 Minuten backen. Für deine Frau und deinen Sohn aus Hack, Ei und Gewürzen kleine Frikadellen braten. Dein Rinderfilet scharf anbraten und im Ofen bei 120 °C 15 Minuten ziehen lassen. Bohnen dämpfen, Kräuterquark dazu.",
+            "kind_tipp": "Frikadellen statt Filet, mit Ketchup zum Dippen." },
+          { "slot": "Snack", "name": "Nachtisch: Bratapfel mit Haferflocken und Zimt", "kcal": 300, "protein": 5, "kohlenhydrate": 55, "fett": 8, "zeit": "10 min + 25 min Ofen",
+            "zutaten": [{ "name": "Äpfel", "menge": "3" }, { "name": "Haferflocken", "menge": "30 g" }, { "name": "Honig", "menge": "2 EL" }],
+            "zubereitung": "Äpfel entkernen, mit Haferflocken, Honig und Zimt füllen, bei 180 °C 25 Minuten backen. Dazu passt ein Löffel Joghurt.",
+            "kind_tipp": "Mit ein paar Rosinen in der Füllung wird es noch süßer." }
+        ]
+      },
+      {
+        "datum": "2026-11-22",
+        "mahlzeiten": [
+          { "slot": "Frühstück", "name": "Sonntagsbrunch: Vollkornbrötchen, Eier und körniger Frischkäse", "kcal": 700, "protein": 42, "kohlenhydrate": 66, "fett": 28, "zeit": "20 min",
+            "zutaten": [{ "name": "Vollkornbrötchen", "menge": "6" }, { "name": "Eier", "menge": "4" }, { "name": "Körniger Frischkäse", "menge": "200 g" }, { "name": "Gurke", "menge": "1" }, { "name": "Tomate", "menge": "3" }],
+            "zubereitung": "Eier kochen, Gemüse aufschneiden, Brötchen aufbacken. Körniger Frischkäse ist für dich, deine Frau nimmt Butter oder Aufschnitt aus dem Kühlschrank." },
+          { "slot": "Mittag", "name": "Kürbis-Linsen-Suppe mit Brot", "kcal": 500, "protein": 20, "kohlenhydrate": 72, "fett": 12, "zeit": "35 min",
+            "zutaten": [{ "name": "Hokkaido-Kürbis", "menge": "1" }, { "name": "Rote Linsen", "menge": "150 g" }, { "name": "Kartoffeln", "menge": "300 g" }, { "name": "Kokosmilch light", "menge": "200 ml" }, { "name": "Gemüsebrühe", "menge": "1 l" }, { "name": "Vollkornbrot", "menge": "3 Scheiben" }],
+            "zubereitung": "Kürbis (mit Schale) und Kartoffeln würfeln, mit Linsen in Brühe 20 Minuten kochen. Kokosmilch dazu, pürieren, mit Salz und etwas Curry abschmecken.",
+            "kind_tipp": "Leuchtend orange, mild, mit Brot zum Tunken." },
+          { "slot": "Abend", "name": "Schweinefilet mit Champignon-Rahm, Reis und Erbsen", "kcal": 800, "protein": 55, "kohlenhydrate": 80, "fett": 24, "zeit": "35 min",
+            "zutaten": [{ "name": "Schweinefilet", "menge": "600 g" }, { "name": "Champignons", "menge": "400 g" }, { "name": "Kochsahne 15 %", "menge": "200 ml" }, { "name": "Reis", "menge": "300 g" }, { "name": "TK-Erbsen", "menge": "300 g" }],
+            "zubereitung": "Vorkochen: Ein Stück Filet und eine Portion Reis für dein Mittagessen am Montag beiseitelegen. Filet in Medaillons schneiden und anbraten, rausnehmen. Champignons anbraten, mit Kochsahne ablöschen, Filet zurück in die Soße. Reis und Erbsen dazu.",
+            "kind_tipp": "Champignons in der Soße, sein Lieblingsessen." },
+          { "slot": "Snack", "name": "Nachtisch: Joghurt mit warmen Beeren", "kcal": 300, "protein": 12, "kohlenhydrate": 40, "fett": 6, "zeit": "5 min",
+            "zutaten": [{ "name": "Naturjoghurt 1,5 %", "menge": "500 g" }, { "name": "TK-Beeren", "menge": "200 g" }, { "name": "Honig", "menge": "1 EL" }],
+            "zubereitung": "Beeren in einem kleinen Topf erwärmen, über den Joghurt geben, mit etwas Honig." }
+        ]
+      }
+    ],
+    "einkauf": [
+      { "name": "Champignons", "menge": "1 kg", "kategorie": "Obst & Gemüse" },
+      { "name": "Paprika", "menge": "6", "kategorie": "Obst & Gemüse" },
+      { "name": "Gurken", "menge": "3", "kategorie": "Obst & Gemüse" },
+      { "name": "Tomaten", "menge": "6", "kategorie": "Obst & Gemüse" },
+      { "name": "Zucchini", "menge": "2", "kategorie": "Obst & Gemüse" },
+      { "name": "Möhren", "menge": "3", "kategorie": "Obst & Gemüse" },
+      { "name": "Zwiebeln", "menge": "4", "kategorie": "Obst & Gemüse" },
+      { "name": "Kartoffeln", "menge": "2,5 kg", "kategorie": "Obst & Gemüse" },
+      { "name": "Hokkaido-Kürbis", "menge": "1", "kategorie": "Obst & Gemüse" },
+      { "name": "Äpfel", "menge": "5", "kategorie": "Obst & Gemüse" },
+      { "name": "Bananen", "menge": "3", "kategorie": "Obst & Gemüse" },
+      { "name": "Zitrone", "menge": "1", "kategorie": "Obst & Gemüse" },
+      { "name": "Kopfsalat", "menge": "1", "kategorie": "Obst & Gemüse" },
+      { "name": "Hähnchenbrust", "menge": "300 g", "kategorie": "Fleisch & Fisch" },
+      { "name": "Rinderhack, mager", "menge": "800 g", "kategorie": "Fleisch & Fisch" },
+      { "name": "Rinderfilet", "menge": "250 g", "kategorie": "Fleisch & Fisch" },
+      { "name": "Schweinefilet", "menge": "600 g", "kategorie": "Fleisch & Fisch" },
+      { "name": "Kochschinken", "menge": "150 g", "kategorie": "Fleisch & Fisch" },
+      { "name": "Körniger Frischkäse", "menge": "5 × 200 g", "kategorie": "Kühlregal" },
+      { "name": "Magerquark", "menge": "4 × 250 g", "kategorie": "Kühlregal" },
+      { "name": "Skyr natur", "menge": "2 × 450 g", "kategorie": "Kühlregal" },
+      { "name": "Eier", "menge": "15 Stück", "kategorie": "Kühlregal" },
+      { "name": "Milch 1,5 %", "menge": "1 l", "kategorie": "Kühlregal" },
+      { "name": "Naturjoghurt 1,5 %", "menge": "750 g", "kategorie": "Kühlregal" },
+      { "name": "Mozzarella light", "menge": "3 × 125 g", "kategorie": "Kühlregal" },
+      { "name": "Feta", "menge": "1 Pack", "kategorie": "Kühlregal" },
+      { "name": "Geriebener Käse light", "menge": "1 Beutel", "kategorie": "Kühlregal" },
+      { "name": "Parmesan", "menge": "1 Stück", "kategorie": "Kühlregal" },
+      { "name": "Kochsahne 15 %", "menge": "2 × 200 ml", "kategorie": "Kühlregal" },
+      { "name": "Schmand light", "menge": "1 Becher", "kategorie": "Kühlregal" },
+      { "name": "Kräuterquark", "menge": "1 Becher", "kategorie": "Kühlregal" },
+      { "name": "Gnocchi", "menge": "600 g", "kategorie": "Kühlregal" },
+      { "name": "Pizzateig", "menge": "2 Rollen", "kategorie": "Kühlregal" },
+      { "name": "Haferflocken", "menge": "500 g", "kategorie": "Brot & Trockenware" },
+      { "name": "Vollkornbrot", "menge": "1 Laib", "kategorie": "Brot & Trockenware" },
+      { "name": "Vollkorntoast", "menge": "1 Pack", "kategorie": "Brot & Trockenware" },
+      { "name": "Vollkornbrötchen", "menge": "6", "kategorie": "Brot & Trockenware" },
+      { "name": "Vollkorn-Wraps", "menge": "1 Pack", "kategorie": "Brot & Trockenware" },
+      { "name": "Couscous", "menge": "500 g", "kategorie": "Brot & Trockenware" },
+      { "name": "Reis", "menge": "1 kg", "kategorie": "Brot & Trockenware" },
+      { "name": "Vollkorn-Spaghetti", "menge": "500 g", "kategorie": "Brot & Trockenware" },
+      { "name": "Rote Linsen", "menge": "500 g", "kategorie": "Brot & Trockenware" },
+      { "name": "Thunfisch naturell", "menge": "2 Dosen", "kategorie": "Konserven & Vorrat" },
+      { "name": "Kidneybohnen", "menge": "3 Dosen", "kategorie": "Konserven & Vorrat" },
+      { "name": "Mais", "menge": "2 Dosen", "kategorie": "Konserven & Vorrat" },
+      { "name": "Passierte Tomaten", "menge": "3 × 500 g", "kategorie": "Konserven & Vorrat" },
+      { "name": "Gehackte Tomaten", "menge": "2 Dosen", "kategorie": "Konserven & Vorrat" },
+      { "name": "Kokosmilch light", "menge": "1 Dose", "kategorie": "Konserven & Vorrat" },
+      { "name": "Backkakao", "menge": "1 Pack", "kategorie": "Konserven & Vorrat" },
+      { "name": "Honig", "menge": "1 Glas", "kategorie": "Konserven & Vorrat" },
+      { "name": "Gemüsebrühe", "menge": "1 Glas", "kategorie": "Konserven & Vorrat" },
+      { "name": "TK-Beeren", "menge": "1 kg", "kategorie": "Tiefkühl" },
+      { "name": "TK-Blattspinat", "menge": "450 g", "kategorie": "Tiefkühl" },
+      { "name": "TK grüne Bohnen", "menge": "450 g", "kategorie": "Tiefkühl" },
+      { "name": "TK-Erbsen", "menge": "450 g", "kategorie": "Tiefkühl" }
+    ]
+  }
+}

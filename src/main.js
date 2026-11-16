@@ -15,7 +15,7 @@ import { initEinkauf } from './einkauf.js';
 import { initMehr, showMore } from './mehr.js';
 import { initNotes } from './notes.js';
 import { initImporter, importAny } from './importer.js';
-import preset from './preset.json';
+const presets = import.meta.glob('./presets/*.json', { eager: true });
 import { toast } from './util.js';
 import { startSync, connected, pull } from './sync.js';
 
@@ -73,12 +73,16 @@ async function boot() {
   }
 
   $('#nokey-ok').onclick = () => { db.settings.keyNoticeSeen = true; save(); };
-  // Einmalig mitgeliefertes Startpaket übernehmen (Plan und Ziele aus dem Chat).
-  if (preset?.id && db.settings.presetApplied !== preset.id) {
-    const what = importAny(preset);
-    db.settings.presetApplied = preset.id; save();
-    if (what) setTimeout(() => toast('Neu eingetragen: ' + what), 600);
+  // Mitgelieferte Pakete aus dem Chat (Pläne, Ziele) je einmal übernehmen.
+  const applied = new Set(db.settings.presetsApplied || (db.settings.presetApplied ? [db.settings.presetApplied] : []));
+  const news = [];
+  for (const [, mod] of Object.entries(presets).sort(([a], [b]) => a.localeCompare(b))) {
+    const p = mod.default || mod;
+    if (!p?.id || applied.has(p.id)) continue;
+    const what = importAny(p); applied.add(p.id); if (what) news.push(what);
   }
+  if (news.length) { db.settings.presetsApplied = [...applied]; save(); setTimeout(() => toast('Neu eingetragen: ' + news.join(', ')), 600); }
+  else if (!db.settings.presetsApplied) { db.settings.presetsApplied = [...applied]; }
   showTab('training', false);
   setDay(today());
 }

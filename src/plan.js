@@ -1,5 +1,5 @@
 import { db, save } from './store.js';
-import { S, addRender, busy, lastWeight, me, familyFactor, householdText } from './app.js';
+import { S, addRender, busy, lastWeight, me, familyFactor, householdText, kcalFor, kcalText } from './app.js';
 import { $, $$, esc, de, num, uid, today, addDays, fmtDay, toast, WD, wdOf } from './util.js';
 import { askJSON, aiMsg, hasKey } from './claude.js';
 import { showBridge } from './bridge.js';
@@ -17,7 +17,7 @@ const mapMeal = m => ({
   kcal: num(m.kcal) || 0, protein: num(m.protein) || 0, carbs: num(m.kohlenhydrate) || 0, fat: num(m.fett) || 0,
   time: String(m.zeit || ''), steps: String(m.zubereitung || ''), kidTip: String(m.kind_tipp || ''),
   ingredients: (m.zutaten || []).map(z => ({ name: String(z.name || ''), amount: String(z.menge || '') })).filter(z => z.name),
-  locked: false
+  solo: !!m.nur_ich, locked: false
 });
 const factorStr = f => String(f).replace('.', ',');
 
@@ -30,7 +30,7 @@ function renderHouse() {
   const s = db.settings; const H = s.household;
   $('#mp-house').innerHTML = `<div class="actions between"><h3>Haushalt</h3><button type="button" class="sm ghost" data-goto="einstellungen">Ändern</button></div>
     <div class="chips">${H.map(p => `<span class="chip t">${esc(p.name)} · Portion ${factorStr(p.factor)}</span>`).join('')}</div>
-    <p class="small muted">Deine Portion: ${s.kcalGoal ? `Ziel ${de(s.kcalGoal)} kcal` : 'Ziel schlägt Claude vor'}${s.proteinGoal ? `, ${de(s.proteinGoal)} g Eiweiß` : ''}. Einkauf für ${factorStr(Math.round(familyFactor() * 10) / 10)} Portionen.</p>`;
+    <p class="small muted">Deine Portion: ${s.kcalGoal ? `Ziel ${kcalText()}` : 'Ziel schlägt Claude vor'}${s.proteinGoal ? `, ${de(s.proteinGoal)} g Eiweiß` : ''}. Einkauf für ${factorStr(Math.round(familyFactor() * 10) / 10)} Portionen.</p>`;
 }
 
 function renderTrainChips() {
@@ -54,7 +54,7 @@ function mealHTML(m, i) {
     <div class="actions between"><span class="tag">${esc(m.slot)}${m.locked ? ' · fixiert' : ''}</span><span class="num kcal">${de(m.kcal)} kcal</span></div>
     <div class="t">${esc(m.name)}</div>
     <div class="s">Deine Portion: E ${de(m.protein)} · K ${de(m.carbs)} · F ${de(m.fat)} g${m.time ? ' · ' + esc(m.time) : ''}</div>
-    ${m.ingredients.length || m.steps ? `<details><summary>Zutaten für alle und Zubereitung</summary><ul>${m.ingredients.map(z => `<li>${esc(z.amount ? z.amount + ' ' : '')}${esc(z.name)}</li>`).join('')}</ul>${m.steps ? `<p class="small" style="margin-top:6px">${esc(m.steps)}</p>` : ''}${m.kidTip ? `<p class="small muted" style="margin-top:6px">Fürs Kind: ${esc(m.kidTip)}</p>` : ''}</details>` : ''}
+    ${m.ingredients.length || m.steps ? `<details><summary>${m.solo ? 'Zutaten für dich' : 'Zutaten für alle'} und Zubereitung</summary><ul>${m.ingredients.map(z => `<li>${esc(z.amount ? z.amount + ' ' : '')}${esc(z.name)}</li>`).join('')}</ul>${m.steps ? `<p class="small" style="margin-top:6px">${esc(m.steps)}</p>` : ''}${m.kidTip ? `<p class="small muted" style="margin-top:6px">Fürs Kind: ${esc(m.kidTip)}</p>` : ''}</details>` : ''}
     <div class="actions"><button type="button" class="sm primary" data-eat="${i}">✓ Gegessen</button><button type="button" class="sm" data-swap="${i}">Tauschen</button><button type="button" class="sm ghost" data-edit="${i}">Ändern</button><button type="button" class="sm ghost" data-lock="${i}" aria-label="${m.locked ? 'Fixierung lösen' : 'Für nächste Planung fixieren'}">${m.locked ? '📌 Fixiert' : '📌'}</button></div>
   </div>`;
 }
@@ -71,7 +71,7 @@ function renderPlanView() {
   const idx = Math.min(P.days.length - 1, sel ?? Math.max(0, found));
   const d = P.days[idx];
   const sum = k => d.meals.reduce((s, m) => s + (m[k] || 0), 0);
-  const target = db.settings.kcalGoal || P.kcalTarget;
+  const target = kcalFor(d.date) || P.kcalTarget;
   const past = P.days[P.days.length - 1].date < today();
   v.innerHTML = `<div class="card">
     <p class="small muted">${fmtDay(P.days[0].date)} bis ${fmtDay(P.days[P.days.length - 1].date)}${past ? ' · abgelaufen, Zeit für einen neuen Plan' : ''}</p>
@@ -95,7 +95,7 @@ function renderPlanView() {
   v.querySelectorAll('[data-edsave]').forEach(b => b.onclick = () => {
     const m = d.meals[+b.dataset.edsave];
     m.name = $('#ed-name').value.trim() || m.name; m.kcal = num($('#ed-kcal').value) ?? m.kcal; m.protein = num($('#ed-p').value) ?? m.protein;
-    editing = null; touchPlan(); save(); toast('Geändert');
+    editing = null; db.mealplan.shopStale = true; touchPlan(); save(); toast('Geändert');
   });
   v.querySelectorAll('[data-swap]').forEach(b => b.onclick = () => swapMeal(d, +b.dataset.swap, b));
   $('#mp-shop').onclick = () => buildShopping(P);
@@ -114,7 +114,7 @@ Haushalt: ${householdText()}. Aufwand: ${db.mealplan.effort || 'normal'}.${db.me
 Nährwerte für die Portion des Erwachsenen mit Anteil 1. Zutatenmengen für den ganzen Haushalt zusammen (${factorStr(Math.round(familyFactor() * 10) / 10)} Portionen).
 Form: {"slot":"${m.slot}","name":"…","kcal":600,"protein":40,"kohlenhydrate":60,"fett":18,"zeit":"25 min","zutaten":[{"name":"…","menge":"…"}],"zubereitung":"2 bis 3 Sätze","kind_tipp":"optional, kurz"}`, { maxTokens: 1500 });
       const nm = mapMeal(r); if (!nm.name) throw new Error();
-      nm.slot = m.slot; day.meals[i] = nm; touchPlan(); save(); toast('Getauscht: ' + nm.name);
+      nm.slot = m.slot; nm.solo = m.solo; day.meals[i] = nm; db.mealplan.shopStale = true; touchPlan(); save(); toast('Getauscht: ' + nm.name);
     } catch (e) { toast(e.code ? aiMsg(e) : 'Tauschen hat nicht geklappt. Versuch es nochmal.'); }
   });
 }
@@ -130,8 +130,10 @@ async function buildShopping(P) {
   if (!lines.length) { toast('Im Plan stehen keine Zutaten.'); return; }
   const hint = $('#mp-shophint');
   // Ohne Schlüssel: die mitgelieferte Liste nehmen (stimmt, solange nichts getauscht wurde), sonst lokal zusammenführen.
-  if (!hasKey()) {
-    const n = addShopItems(P.shopping?.length ? P.shopping : localMerge(lines));
+  // Mitgelieferte Liste nehmen, solange nichts getauscht oder geändert wurde: kostet kein Guthaben.
+  const fresh = P.shopping?.length && !P.shopStale;
+  if (fresh || !hasKey()) {
+    const n = addShopItems(fresh ? P.shopping : localMerge(lines));
     toast(n ? `${n} Sachen auf die Einkaufsliste gesetzt` : 'Alles steht schon auf der Liste');
     return;
   }
@@ -168,13 +170,14 @@ async function createPlan(e) {
 Haushalt: ${householdText()}.
 Mahlzeiten pro Tag: ${slotsFor(meals).join(', ')}. Frühstück und Snacks dürfen einfach sein; Mittag kann an Werktagen etwas Mitnehmbares sein.
 Trainingsziel des Erwachsenen mit Portion 1: ${db.plan?.goal || 'fit und gesund bleiben'}.${w ? ` Körpergewicht ${w} kg.` : ''}
-Tagesziel für diese Portion: ${s.kcalGoal ? de(s.kcalGoal) + ' kcal' : 'keine Angabe. Wähle ein passendes, moderates Ziel und gib es in "ziel_kcal" an'}${s.proteinGoal ? `, ${de(s.proteinGoal)} g Eiweiß` : ', eiweißreich'}. An Trainingstagen etwas mehr Kohlenhydrate.
+Tagesziel für diese Portion: ${s.kcalGoal ? kcalText() : 'keine Angabe. Wähle ein passendes, moderates Ziel und gib es in "ziel_kcal" an'}${s.proteinGoal ? `, ${de(s.proteinGoal)} g Eiweiß` : ', eiweißreich'}. An Trainingstagen etwas mehr Kohlenhydrate.
 Tage:
 ${dates.map(dt => `${dt} (${WD[wdOf(dt)]}): ${td.includes(wdOf(dt)) ? 'Trainingstag' : 'Ruhetag'}`).join('\n')}
 Aufwand: ${effort}. Wünsche: ${pref || 'keine'}.${liked.length ? ' Gerichte, die gut ankommen: ' + liked.join(', ') + '.' : ''}
 Kindgerecht: nicht scharf, Gemüse gern versteckt oder als Rohkost dazu; bei Bedarf ein kurzer Tipp in "kind_tipp".
 Reste und Vorkochen sinnvoll nutzen, damit der Einkauf klein bleibt. Einfache Zutaten vom Discounter.${offers ? '\nBevorzuge Zutaten aus diesen aktuellen Angeboten:\n' + offers : ''}${keep.length ? '\nDiese Mahlzeiten stehen fest und bleiben unverändert, plane drumherum: ' + keep.map(m => `${m.date} ${m.slot}: ${m.name}`).join('; ') : ''}
-Nährwerte je Mahlzeit für die Portion 1. Zutatenmengen für den ganzen Haushalt (${factorStr(Math.round(familyFactor() * 10) / 10)} Portionen).
+Mahlzeiten, die nur der Erwachsene mit Portion 1 isst (zum Beispiel Frühstück oder Mittag zum Mitnehmen mit Zutaten, die andere nicht mögen), bekommen "nur_ich": true. Dann gelten die Zutatenmengen nur für ihn.
+Nährwerte je Mahlzeit für die Portion 1. Zutatenmengen sonst für den ganzen Haushalt (${factorStr(Math.round(familyFactor() * 10) / 10)} Portionen).
 ${bridge ? `Fasse außerdem alle Zutaten der Woche zu einer Einkaufsliste zusammen (gleiche addieren, auf Packungsgrößen runden, ohne Salz, Pfeffer, Gewürze, Öl, Mehl, Zucker) mit Kategorie aus: ${CATS.join(', ')}.\n` : ''}Form: {"art":"wochenplan","ziel_kcal":2500,"tage":[{"datum":"YYYY-MM-DD","mahlzeiten":[{"slot":"Frühstück","name":"…","kcal":550,"protein":35,"kohlenhydrate":60,"fett":15,"zeit":"10 min","zutaten":[{"name":"Haferflocken","menge":"200 g"}],"zubereitung":"2 bis 3 Sätze","kind_tipp":""}]}]${bridge ? ',"einkauf":[{"name":"Haferflocken","menge":"1 kg","kategorie":"Brot & Trockenware"}]' : ''}}`;
   if (bridge) { showBridge($('#mp-bridge'), prompt, r => applyMealPlan(r, ctx)); return; }
   await busy($('#mp-go'), $('#mp-hint'), 'Claude plant eure Woche. Das kann ein bis zwei Minuten dauern …', async () => {
@@ -192,7 +195,8 @@ export function applyMealPlan(r, { dates, keep, td, meals, effort, pref }) {
       const j = ms.findIndex(m => m.slot === k.slot); const { date, ...meal } = k;
       if (j >= 0) ms[j] = meal; else ms.push(meal);
     });
-    return { date: dt, training: td.includes(wdOf(dt)), meals: ms };
+    // Trainingstag erst ab Start des Trainingsplans
+    return { date: dt, training: td.includes(wdOf(dt)) && (!db.plan?.start || dt >= db.plan.start), meals: ms };
   }).filter(t => t.meals.length);
   if (!days.length) return false;
   const shopping = (r.einkauf || []).map(x => ({ name: String(x.name || ''), amount: String(x.menge || ''), cat: CATS.includes(x.kategorie) ? x.kategorie : 'Sonstiges' })).filter(x => x.name);
