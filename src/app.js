@@ -41,3 +41,18 @@ export const householdText = () => db.settings.household.map(p => {
 }).join('; ');
 
 export const defaultTrainDays = n => ({ 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 3, 4] })[n] || [0, 2, 4];
+
+/** Laufende Anzeige mit Sekunden, damit man sieht, dass noch etwas passiert. */
+export function ticker(el, base) {
+  const t0 = Date.now(); let extra = '';
+  const draw = () => {
+    const s = Math.round((Date.now() - t0) / 1000);
+    el.textContent = `${base} ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}${extra ? ' · ' + extra : ''}`;
+  };
+  draw(); const iv = setInterval(draw, 1000);
+  return { set(x) { extra = x; draw(); }, stop() { clearInterval(iv); } };
+}
+/** Fortschrittstext aus der laufenden Claude-Antwort. */
+export const streamInfo = (bytes, done, total, unit) =>
+  done ? `${total ? `${unit} ${Math.min(done, total)} von ${total}` : `${done} ${unit}`} · ${Math.max(1, Math.round(bytes / 1024))} KB`
+    : bytes ? `${Math.max(1, Math.round(bytes / 1024))} KB empfangen` : 'warte auf Antwort';

@@ -1,5 +1,5 @@
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
-import { db } from './store.js';
+import { db, save } from './store.js';
 
 export class AIError extends Error {
   constructor(code, message) { super(message); this.code = code; }
@@ -36,11 +36,13 @@ async function callStream(body, onText) {
   catch { throw new AIError('network', 'Keine Verbindung zu Claude. Prüf dein Internet.'); }
   if (!res.ok) { let data = {}; try { data = await res.json(); } catch { /* leer */ } throw apiError(res.status, data); }
   const reader = res.body.getReader(); const dec = new TextDecoder();
-  let buf = '', text = '', stop = null;
+  let buf = '', text = '', stop = null, bytes = 0;
+  onText?.('', 0);
   try {
     for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
+      bytes += value.length;
       buf += dec.decode(value, { stream: true });
       let i;
       while ((i = buf.indexOf('\n\n')) >= 0) {
@@ -48,10 +50,11 @@ async function callStream(body, onText) {
         const line = chunk.split('\n').find(l => l.startsWith('data:'));
         if (!line) continue;
         let ev; try { ev = JSON.parse(line.slice(5).trim()); } catch { continue; }
-        if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') { text += ev.delta.text; onText?.(text); }
+        if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') text += ev.delta.text;
         else if (ev.type === 'message_delta') stop = ev.delta?.stop_reason || stop;
-        else if (ev.type === 'error') throw apiError(ev.error?.type === 'overloaded_error' ? 529 : 500, { error: ev.error });
+        if (ev.type === 'error') throw apiError(ev.error?.type === 'overloaded_error' ? 529 : 500, { error: ev.error });
       }
+      onText?.(text, bytes);
     }
   } catch (e) {
     if (e instanceof AIError) throw e;
@@ -61,22 +64,22 @@ async function callStream(body, onText) {
 }
 
 /** Normale Anfrage (für die Websuche, die zwischendurch pausieren kann). Mit langer Wartezeit. */
-async function callPlain(body) {
+async function callPlain(body, url = URL_, method = 'POST') {
   if (Capacitor.isNativePlatform()) {
     let r;
-    try { r = await CapacitorHttp.request({ url: URL_, method: 'POST', headers: headers(), data: body, connectTimeout: 30000, readTimeout: 300000 }); }
+    try { r = await CapacitorHttp.request({ url, method, headers: headers(), data: body ?? undefined, connectTimeout: 30000, readTimeout: 300000, responseType: 'text' }); }
     catch (e) {
       if (/timeout/i.test(String(e?.message))) throw new AIError('timeout', 'Claude hat zu lange gebraucht. Versuch es nochmal, am besten im WLAN.');
       throw new AIError('network', 'Keine Verbindung zu Claude. Prüf dein Internet.');
     }
-    const data = typeof r.data === 'string' ? (() => { try { return JSON.parse(r.data); } catch { return {}; } })() : (r.data || {});
+    const data = typeof r.data === 'string' ? (() => { try { return JSON.parse(r.data); } catch { return { raw: r.data }; } })() : (r.data || {});
     if (r.status < 200 || r.status >= 300) throw apiError(r.status, data);
     return data;
   }
   let res;
-  try { res = await webFetch()(URL_, { method: 'POST', headers: headers(), body: JSON.stringify(body) }); }
+  try { res = await webFetch()(url, { method, headers: headers(), body: body == null ? undefined : JSON.stringify(body) }); }
   catch { throw new AIError('network', 'Keine Verbindung zu Claude. Prüf dein Internet.'); }
-  let data = {}; try { data = await res.json(); } catch { /* leer */ }
+  const raw = await res.text(); let data = {}; try { data = JSON.parse(raw); } catch { data = { raw }; }
   if (!res.ok) throw apiError(res.status, data);
   return data;
 }
@@ -85,17 +88,29 @@ async function callPlain(body) {
  * Fragt Claude. images: Base64-JPEGs. webSearch: Claude darf im Internet suchen.
  * smart: größeres Modell für Pläne und Fotos. onText: Fortschritt beim Schreiben.
  */
-export async function ask(prompt, { smart = false, images = [], maxTokens = 2000, webSearch = false, system, onText } = {}) {
-  if (!hasKey()) throw new AIError('no_key', 'Für diese Funktion braucht die App deinen API-Schlüssel. Trag ihn unter Zahnrad → Einstellungen ein.');
+function buildBody(prompt, { smart = false, images = [], maxTokens = 2000, system } = {}) {
   const content = [
     ...images.map(data => ({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data } })),
     { type: 'text', text: prompt }
   ];
-  const messages = [{ role: 'user', content }];
-  const body = { model: smart ? db.settings.modelSmart : db.settings.modelQuick, max_tokens: maxTokens, messages };
+  const body = { model: smart ? db.settings.modelSmart : db.settings.modelQuick, max_tokens: maxTokens, messages: [{ role: 'user', content }] };
   if (system) body.system = system;
+  return body;
+}
 
-  if (!webSearch) return callStream(body, onText);
+/** Bildschirm wach halten, solange Claude schreibt (wo das Handy es erlaubt). */
+async function wake() { try { return await navigator.wakeLock?.request('screen'); } catch { return null; } }
+
+export async function ask(prompt, opts = {}) {
+  const { webSearch = false, onText } = opts;
+  if (!hasKey()) throw new AIError('no_key', 'Für diese Funktion braucht die App deinen API-Schlüssel. Trag ihn unter Zahnrad → Einstellungen ein.');
+  const body = buildBody(prompt, opts);
+  const messages = body.messages;
+
+  if (!webSearch) {
+    const lock = await wake();
+    try { return await callStream(body, onText); } finally { lock?.release?.().catch?.(() => {}); }
+  }
 
   body.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 8 }];
   let data = await callPlain(body);
@@ -108,14 +123,76 @@ export async function ask(prompt, { smart = false, images = [], maxTokens = 2000
   return { text, stop: data.stop_reason };
 }
 
-export async function askJSON(prompt, opts) {
-  const { text, stop } = await ask(prompt + '\n\nAntworte ausschließlich mit gültigem JSON, ohne Erklärtext und ohne Markdown.', opts);
+const JSON_HINT = '\n\nAntworte ausschließlich mit gültigem JSON, ohne Erklärtext und ohne Markdown.';
+
+/**
+ * opts.background = { kind, ctx }: Reißt die Verbindung ab (Handy gesperrt, App gewechselt,
+ * Funkloch), macht Claude die Antwort auf dem Server fertig. Die App holt sie später ab
+ * und übergibt sie dem mit registerJob angemeldeten Empfänger.
+ */
+export async function askJSON(prompt, opts = {}) {
+  let res;
+  try { res = await ask(prompt + JSON_HINT, opts); }
+  catch (e) {
+    if (opts.background && e.code === 'network') {
+      await submitJob(opts.background, buildBody(prompt + JSON_HINT, opts));
+      throw new AIError('background', 'Die Verbindung ist abgerissen. Claude macht den Plan jetzt im Hintergrund fertig. Du kannst das Handy weglegen: Sobald er da ist, übernimmt die App ihn beim nächsten Öffnen von selbst (meist nach wenigen Minuten).');
+    }
+    throw e;
+  }
+  if (opts.background && db.aiJobs?.[opts.background.kind]) { delete db.aiJobs[opts.background.kind]; save(); }
+  const { text, stop } = res;
   const j = extractJSON(text);
   if (j == null) {
     if (stop === 'max_tokens') throw new AIError('too_long', 'Die Antwort war zu lang und wurde abgeschnitten. Versuch es nochmal.');
     throw new AIError('invalid_json', 'Die Antwort war unvollständig. Versuch es nochmal.');
   }
   return j;
+}
+
+/* ---------- Aufträge im Hintergrund (Batch-API, halber Preis, läuft ohne offene Verbindung) ---------- */
+const BATCH = 'https://api.anthropic.com/v1/messages/batches';
+const handlers = {};
+let pollT = null, polling = false;
+
+async function submitJob({ kind, ctx }, body) {
+  let r;
+  try { r = await callPlain({ requests: [{ custom_id: kind, params: body }] }, BATCH); }
+  catch (e) { if (e.code === 'network' || e.code === 'timeout') throw new AIError('network', 'Die Verbindung zu Claude ist abgebrochen. Versuch es nochmal, am besten im WLAN.'); throw e; }
+  db.aiJobs = db.aiJobs || {};
+  db.aiJobs[kind] = { batch: r.id, ctx, at: Date.now() };
+  save(); schedulePoll(20000);
+}
+
+/** Empfänger für fertige Hintergrund-Aufträge. fn(json, ctx) gibt true zurück, wenn übernommen. */
+export function registerJob(kind, fn) { handlers[kind] = fn; }
+export const pendingJob = kind => db.aiJobs?.[kind] || null;
+
+function schedulePoll(ms) {
+  clearTimeout(pollT);
+  if (Object.keys(db.aiJobs || {}).length) pollT = setTimeout(pollJobs, ms);
+}
+
+export async function pollJobs() {
+  if (polling || !hasKey()) return;
+  const jobs = Object.entries(db.aiJobs || {});
+  if (!jobs.length) return;
+  polling = true;
+  try {
+    for (const [kind, job] of jobs) {
+      if (Date.now() - job.at > 30 * 3600 * 1000) { delete db.aiJobs[kind]; continue; }
+      const st = await callPlain(null, `${BATCH}/${job.batch}`, 'GET');
+      if (st.processing_status !== 'ended') continue;
+      delete db.aiJobs[kind];
+      const out = await callPlain(null, st.results_url || `${BATCH}/${job.batch}/results`, 'GET');
+      const line = String(out.raw ?? JSON.stringify(out)).split('\n').map(l => { try { return JSON.parse(l); } catch { return null; } }).find(x => x?.custom_id === kind);
+      const msg = line?.result?.type === 'succeeded' ? line.result.message : null;
+      const j = msg ? extractJSON((msg.content || []).filter(b => b.type === 'text').map(b => b.text).join('')) : null;
+      const ok = j && handlers[kind] ? handlers[kind](j, job.ctx) : false;
+      window.dispatchEvent(new CustomEvent('kk-job', { detail: { kind, ok } }));
+    }
+  } catch { /* nächstes Mal wieder */ }
+  finally { polling = false; save(); schedulePoll(30000); }
 }
 
 function extractJSON(t) {

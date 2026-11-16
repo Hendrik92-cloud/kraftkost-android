@@ -20,6 +20,7 @@ const presets = import.meta.glob('./presets/*.json', { eager: true });
 import { toast } from './util.js';
 import { startSync, connected, pull } from './sync.js';
 import { startUpdates, initUpdateCard } from './update.js';
+import { pollJobs } from './claude.js';
 
 const TABS = ['training', 'essen', 'plan', 'einkauf', 'notizen', 'mehr'];
 const history = [];
@@ -100,6 +101,15 @@ async function boot() {
   }
 
   $('#nokey-ok').onclick = () => { db.settings.keyNoticeSeen = true; save(); };
+  // Pläne, die Claude im Hintergrund fertig macht, abholen.
+  window.addEventListener('kk-job', e => {
+    const name = e.detail.kind === 'wochenplan' ? 'Wochenplan' : 'Trainingsplan';
+    toast(e.detail.ok ? `✓ ${name} ist fertig` : `${name} kam unvollständig an. Bitte nochmal erstellen.`);
+    renderAll();
+  });
+  pollJobs();
+  if (isNative) App.addListener('resume', () => pollJobs());
+
   showPresets();
   showTab('training', false);
   setDay(today());

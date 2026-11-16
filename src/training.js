@@ -1,7 +1,7 @@
 import { db, save } from './store.js';
-import { S, addRender, busy, lastWeight, defaultTrainDays } from './app.js';
+import { S, addRender, busy, lastWeight, defaultTrainDays, ticker, streamInfo } from './app.js';
 import { $, esc, de, num, uid, iso, today, addDays, fmtDay, toast, armed, wdOf } from './util.js';
-import { askJSON, aiMsg, hasKey } from './claude.js';
+import { askJSON, aiMsg, hasKey, registerJob } from './claude.js';
 import { listen, setTimer, buzz, scheduleTraining } from './native.js';
 import { showBridge } from './bridge.js';
 
@@ -250,12 +250,15 @@ Form: {"art":"trainingsplan","name":"kurzer Planname","wochen":10,"phasen":[{"wo
     showBridge($('#p-bridge'), prompt, r => applyPlan(r, meta));
     return;
   }
-  await busy($('#p-go'), $('#p-hint'), 'Claude stellt deinen Plan zusammen. Das dauert etwa eine Minute …', async () => {
-    try { if (!applyPlan(await askJSON(prompt, { smart: true, maxTokens: 12000, onText: t => {
-      const d = (t.match(/"titel"\s*:\s*"Tag /g) || []).length, u = (t.match(/"ablauf"/g) || []).length;
-      if (u || d) $('#p-hint').textContent = `Claude schreibt: Trainingstag ${Math.max(d, 1)} von ${days}, ${u} Übungen erklärt …`;
-    } }), meta)) throw new Error(); }
-    catch (err) { $('#p-hint').textContent = err.code ? aiMsg(err) : 'Der Plan kam unvollständig an. Versuch es nochmal.'; }
+  await busy($('#p-go'), null, '', async () => {
+    const tk = ticker($('#p-hint'), 'Claude stellt deinen Plan zusammen …');
+    try {
+      let r;
+      try {
+        r = await askJSON(prompt, { smart: true, maxTokens: 12000, background: { kind: 'trainingsplan', ctx: meta }, onText: (t, b) => tk.set(streamInfo(b, (t.match(/"ablauf"\s*:/g) || []).length, null, 'Übungen erklärt')) });
+      } finally { tk.stop(); }
+      if (!applyPlan(r, meta)) throw new Error();
+    } catch (err) { $('#p-hint').textContent = err.code ? aiMsg(err) : 'Der Plan kam unvollständig an. Versuch es nochmal.'; }
   });
 }
 
@@ -290,6 +293,7 @@ export function applyPlan(r, meta) {
 
 export function initTraining() {
   $('#p-start').value = today();
+  registerJob('trainingsplan', (r, meta) => applyPlan(r, meta));
   $('#w-ex').addEventListener('input', () => { pendingPlanDay = null; exHint(); });
   $('#w-ex').addEventListener('change', () => {
     const prev = lastOf($('#w-ex').value.trim());

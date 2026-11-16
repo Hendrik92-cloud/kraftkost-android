@@ -1,7 +1,7 @@
 import { db, save } from './store.js';
-import { S, addRender, busy, lastWeight, me, familyFactor, householdText, kcalFor, kcalText } from './app.js';
+import { S, addRender, busy, lastWeight, me, familyFactor, householdText, kcalFor, kcalText, ticker, streamInfo } from './app.js';
 import { $, $$, esc, de, num, uid, today, addDays, fmtDay, toast, WD, wdOf } from './util.js';
-import { askJSON, aiMsg, hasKey } from './claude.js';
+import { askJSON, aiMsg, hasKey, registerJob, pendingJob } from './claude.js';
 import { showBridge } from './bridge.js';
 import { logMeal } from './essen.js';
 import { addShopItems, CATS, live, removeItem, guessCat, tripFor, LASTING } from './einkauf.js';
@@ -179,12 +179,15 @@ Mahlzeiten, die nur der Erwachsene mit Portion 1 isst (zum Beispiel Frühstück 
 Nährwerte je Mahlzeit für die Portion 1. Zutatenmengen sonst für den ganzen Haushalt (${factorStr(Math.round(familyFactor() * 10) / 10)} Portionen).
 ${bridge ? `Fasse außerdem alle Zutaten der Woche zu einer Einkaufsliste zusammen (gleiche addieren, auf Packungsgrößen runden, ohne Salz, Pfeffer, Gewürze, Öl, Mehl, Zucker) mit Kategorie aus: ${CATS.join(', ')}.\n` : ''}Form: {"art":"wochenplan","ziel_kcal":2500,"tage":[{"datum":"YYYY-MM-DD","mahlzeiten":[{"slot":"Frühstück","name":"…","kcal":550,"protein":35,"kohlenhydrate":60,"fett":15,"zeit":"10 min","zutaten":[{"name":"Haferflocken","menge":"200 g"}],"zubereitung":"2 bis 3 Sätze","kind_tipp":""}]}]${bridge ? ',"einkauf":[{"name":"Haferflocken","menge":"1 kg","kategorie":"Brot & Trockenware"}]' : ''}}`;
   if (bridge) { showBridge($('#mp-bridge'), prompt, r => applyMealPlan(r, ctx)); return; }
-  await busy($('#mp-go'), $('#mp-hint'), 'Claude plant eure Woche. Das kann ein bis zwei Minuten dauern …', async () => {
-    try { if (!applyMealPlan(await askJSON(prompt, { smart: true, maxTokens: 16000, onText: t => {
-      const n = (t.match(/"datum"/g) || []).length;
-      if (n) $('#mp-hint').textContent = `Claude schreibt: Tag ${Math.min(n, 7)} von 7 …`;
-    } }), ctx)) throw new Error(); }
-    catch (err) { $('#mp-hint').textContent = err.code ? aiMsg(err) : 'Der Plan kam unvollständig an. Versuch es nochmal.'; }
+  await busy($('#mp-go'), null, '', async () => {
+    const tk = ticker($('#mp-hint'), 'Claude plant eure Woche …');
+    try {
+      let r;
+      try {
+        r = await askJSON(prompt, { smart: true, maxTokens: 16000, background: { kind: 'wochenplan', ctx }, onText: (t, b) => tk.set(streamInfo(b, (t.match(/"datum"\s*:/g) || []).length, 7, 'Tag')) });
+      } finally { tk.stop(); }
+      if (!applyMealPlan(r, ctx)) throw new Error();
+    } catch (err) { $('#mp-hint').textContent = err.code ? aiMsg(err) : 'Der Plan kam unvollständig an. Versuch es nochmal.'; }
   });
 }
 
@@ -214,5 +217,12 @@ export function applyMealPlan(r, { dates, keep, td, meals, effort, pref, noGoal:
 export function initPlan() {
   $('#mp-start').value = today();
   $('#mpform').onsubmit = createPlan;
-  addRender(() => { renderHouse(); renderTrainChips(); renderPlanView(); });
+  addRender(() => { renderHouse(); renderTrainChips(); renderPlanView(); jobHint(); });
+  registerJob('wochenplan', (r, ctx) => applyMealPlan(r, ctx));
+}
+const BG = 'Claude macht euren Plan im Hintergrund fertig. Die App übernimmt ihn von selbst.';
+function jobHint() {
+  const h = $('#mp-hint');
+  if (pendingJob('wochenplan')) { if (!$('#mp-go').disabled) h.textContent = BG; }
+  else if (h.textContent === BG) h.textContent = '';
 }
