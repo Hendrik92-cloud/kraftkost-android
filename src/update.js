@@ -20,6 +20,7 @@ const Kraft = registerPlugin('Kraft');
 const PENDING = 'kk-update-pending';
 const native = Capacitor.isNativePlatform();
 
+let step = '';
 let state = { busy: false, last: 0, info: '', apk: null };
 const setInfo = t => { state.info = t; const el = $('#up-info'); if (el) el.textContent = t; };
 
@@ -29,25 +30,30 @@ async function getJSON(url) {
   return typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
 }
 
+// Hinweis: downloadFile legt keine Unterordner an, deshalb direkt in den Cache-Ordner.
 async function download(url, path) {
-  await Filesystem.downloadFile({ url, path, directory: Directory.Cache, recursive: true });
+  try { await Filesystem.deleteFile({ path, directory: Directory.Cache }); } catch { /* gab es nicht */ }
+  await Filesystem.downloadFile({ url, path, directory: Directory.Cache, connectTimeout: 20000, readTimeout: 60000 });
   return (await Filesystem.getUri({ path, directory: Directory.Cache })).uri;
 }
 
 /** Web-Teil laden, entpacken und für den nächsten Start vormerken. */
 async function installWeb(v) {
   setInfo(`Lade Version ${v.build} …`);
-  await download(`${REL}/download/build-${v.build}/web.zip`, 'upd/web.zip');
-  const { data } = await Filesystem.readFile({ path: 'upd/web.zip', directory: Directory.Cache });
+  step = 'Herunterladen';
+  await download(`${REL}/download/build-${v.build}/web.zip`, 'kk-web.zip');
+  step = 'Entpacken';
+  const { data } = await Filesystem.readFile({ path: 'kk-web.zip', directory: Directory.Cache });
   const zip = await JSZip.loadAsync(data, { base64: true });
   if (!zip.file('index.html')) throw new Error('Paket unvollständig');
   const dir = `web/b${v.build}`;
+  step = 'Speichern';
   try { await Filesystem.rmdir({ path: dir, directory: Directory.Data, recursive: true }); } catch { /* gab es nicht */ }
   for (const f of Object.values(zip.files)) {
     if (f.dir) continue;
     await Filesystem.writeFile({ path: `${dir}/${f.name}`, directory: Directory.Data, data: await f.async('base64'), recursive: true });
   }
-  await Filesystem.deleteFile({ path: 'upd/web.zip', directory: Directory.Cache }).catch(() => {});
+  await Filesystem.deleteFile({ path: 'kk-web.zip', directory: Directory.Cache }).catch(() => {});
   const uri = (await Filesystem.getUri({ path: dir, directory: Directory.Data })).uri;
   localStorage.setItem(PENDING, JSON.stringify({ build: v.build, path: decodeURI(uri.replace(/^file:\/\//, '')) }));
   setInfo(`Version ${v.build} ist bereit.`);
@@ -68,12 +74,12 @@ async function installApk() {
   const v = state.apk; if (!v) return;
   try {
     setInfo(`Lade App-Version ${v.build} …`); toast('Lade die neue App …');
-    const uri = await download(`${REL}/download/build-${v.build}/Kraftkost.apk`, 'upd/Kraftkost.apk');
+    const uri = await download(`${REL}/download/build-${v.build}/Kraftkost.apk`, 'kk-update.apk');
     await Kraft.installApk({ path: uri });
     setInfo('Tippe im Android-Fenster auf „Installieren“.');
   } catch (e) {
     if (e?.code === 'permission') setInfo('Erlaube Kraftkost einmalig, Apps zu installieren, geh zurück und tippe nochmal auf „Installieren“.');
-    else setInfo('Das Herunterladen hat nicht geklappt. Versuch es nochmal, am besten im WLAN.');
+    else setInfo('Das Herunterladen hat nicht geklappt: ' + String(e?.message || e).slice(0, 120));
   }
 }
 
@@ -91,7 +97,9 @@ export async function checkUpdate({ force = false } = {}) {
   state.busy = true; state.last = Date.now();
   if (force) setInfo('Suche nach Updates …');
   try {
+    step = 'Versionsabfrage';
     const v = await getJSON(`${REL}/latest/download/version.json`);
+    state.latest = v;
     const pend = JSON.parse(localStorage.getItem(PENDING) || 'null');
     if (!v?.build || v.build <= BUILD) setInfo(`Version ${BUILD} ist aktuell.`);
     else if (v.native !== NATIVE) {
@@ -102,8 +110,14 @@ export async function checkUpdate({ force = false } = {}) {
       setInfo(`Version ${v.build} ist bereit.`);
       banner(`Neue Version ${v.build} ist da.`, 'Jetzt neu laden', applyPending);
     } else await installWeb(v);
-  } catch {
-    if (force) setInfo('Keine Verbindung zu GitHub. Versuch es später nochmal.');
+  } catch (e) {
+    const why = String(e?.message || e).slice(0, 120);
+    if (step === 'Versionsabfrage') { if (force) setInfo(`Keine Verbindung zu GitHub. Versuch es später nochmal. (${why})`); }
+    else {
+      setInfo(`Update hat nicht geklappt beim ${step}: ${why}`);
+      // Notlösung: die komplette neue App anbieten.
+      if (state.latest) { state.apk = state.latest; banner(`Version ${state.latest.build} ließ sich nicht still laden.`, 'Installieren', installApk); }
+    }
   } finally { state.busy = false; }
 }
 
