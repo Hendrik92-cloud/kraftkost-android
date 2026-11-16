@@ -5,6 +5,7 @@ import { extractJSON, paste } from './bridge.js';
 import { applyPlan } from './training.js';
 import { applyMealPlan } from './plan.js';
 import { scheduleTraining } from './native.js';
+import { applySupps } from './supps.js';
 
 function applySettings(e) {
   if (!e) return [];
@@ -29,8 +30,29 @@ function applySettings(e) {
     if (days.length) { s.trainDays = days; done.push('Trainingstage'); }
   }
   if (/^\d{1,2}:\d{2}$/.test(e.uhrzeit || '')) { s.trainTime = e.uhrzeit.padStart(5, '0'); done.push('Uhrzeit'); }
+  if (e.gewohnheiten) { s.habits = String(e.gewohnheiten); done.push('Gewohnheiten'); }
   scheduleTraining(s.trainDays, s.trainTime, s.remind).catch(() => {});
   return done;
+}
+
+/** Gerichte für „Schnell eintragen“ merken. */
+function applyDishes(list) {
+  let n = 0;
+  for (const d of list || []) {
+    if (!d.name || db.dishes.some(x => x.name.toLowerCase() === d.name.toLowerCase())) continue;
+    db.dishes.push({ id: uid(), name: d.name, kcal: num(d.kcal), protein: num(d.protein) || 0, carbs: num(d.kohlenhydrate) || 0, fat: num(d.fett) || 0, parts: [] });
+    n++;
+  }
+  return n;
+}
+/** Einträge einer älteren, ersetzten Einkaufsliste entfernen (nur offene, mit gleichem Namen und gleicher Menge). */
+function removeOldShopping(list) {
+  const key = x => (x.name + '|' + (x.menge ?? x.amount ?? '')).toLowerCase();
+  const old = new Set((list || []).map(key));
+  const before = db.shop.filter(x => !x.deleted).length;
+  db.shop.forEach(x => { if (!x.done && !x.deleted && old.has(key(x))) { x.deleted = true; x.dirty = true; x.updated = Date.now(); } });
+  if (!db.settings.sync) db.shop = db.shop.filter(x => !x.deleted);
+  return before - db.shop.filter(x => !x.deleted).length;
 }
 
 const metaFrom = t => ({
@@ -41,7 +63,7 @@ const isTraining = j => j.art === 'trainingsplan' || (Array.isArray(j.tage) && j
 const isMeal = j => j.art === 'wochenplan' || (Array.isArray(j.tage) && j.tage[0]?.mahlzeiten);
 function mealCtx(j) {
   const first = /^\d{4}-\d{2}-\d{2}$/.test(j.tage?.[0]?.datum || '') ? j.tage[0].datum : today();
-  return { dates: [...Array(7)].map((_, i) => addDays(first, i)), keep: [], td: db.settings.trainDays, meals: Math.max(...j.tage.map(t => (t.mahlzeiten || []).length), 3), effort: '', pref: '' };
+  return { dates: [...Array(7)].map((_, i) => addDays(first, i)), keep: [], td: db.settings.trainDays, meals: Math.max(...j.tage.map(t => (t.mahlzeiten || []).length), 3), effort: '', pref: '', noGoal: true };
 }
 
 /** Gibt eine Beschreibung des Übernommenen zurück oder null. */
@@ -50,6 +72,9 @@ export function importAny(j) {
   const parts = [];
   if (j.art === 'paket') {
     parts.push(...applySettings(j.einstellungen));
+    if (applyDishes(j.gerichte)) parts.push('Gerichte');
+    if (j.ergaenzungen && applySupps(j.ergaenzungen)) parts.push('Ergänzungen');
+    if (j.einkauf_entfernen) removeOldShopping(j.einkauf_entfernen);
     if (j.trainingsplan && applyPlan(j.trainingsplan, metaFrom(j.trainingsplan))) parts.push('Trainingsplan');
     if (j.wochenplan && applyMealPlan(j.wochenplan, mealCtx(j.wochenplan))) parts.push('Wochenplan');
   } else if (isTraining(j)) { if (applyPlan(j, metaFrom(j))) parts.push('Trainingsplan'); }

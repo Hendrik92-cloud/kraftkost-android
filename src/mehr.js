@@ -197,6 +197,7 @@ function renderSettings() {
   if (!keep('#st-ms')) $('#st-ms').value = s.modelSmart;
   if (!keep('#st-kcal')) $('#st-kcal').value = s.kcalGoal || '';
   if (!keep('#st-kcalwe')) $('#st-kcalwe').value = s.kcalWeekend || '';
+  if (!keep('#st-habits')) $('#st-habits').value = s.habits || '';
   if (!keep('#st-prot')) $('#st-prot').value = s.proteinGoal || '';
   if (!keep('#st-plz')) $('#st-plz').value = s.plz;
   $('#st-time').value = s.trainTime; $('#st-dur').value = s.trainMinutes; $('#st-remind').checked = s.remind; $('#st-war').checked = s.warrantyRemind;
@@ -352,7 +353,7 @@ export function initMehr() {
       catch (e) { $('#st-keyhint').textContent = aiMsg(e); }
     });
   };
-  $('#set-goals').onsubmit = e => { e.preventDefault(); db.settings.kcalGoal = num($('#st-kcal').value); db.settings.kcalWeekend = num($('#st-kcalwe').value); db.settings.proteinGoal = num($('#st-prot').value); save(); toast('Ziele gespeichert'); };
+  $('#set-goals').onsubmit = e => { e.preventDefault(); db.settings.kcalGoal = num($('#st-kcal').value); db.settings.kcalWeekend = num($('#st-kcalwe').value); db.settings.habits = $('#st-habits').value.trim(); db.settings.proteinGoal = num($('#st-prot').value); save(); toast('Ziele gespeichert'); };
   $('#set-plz').onsubmit = e => { e.preventDefault(); const p = $('#st-plz').value.trim(); if (p && !/^\d{5}$/.test(p)) { toast('Die Postleitzahl hat 5 Ziffern.'); return; } db.settings.plz = p; save(); toast('Gespeichert'); };
   $('#st-war').onchange = () => { db.settings.warrantyRemind = $('#st-war').checked; save(); syncWarranty(); };
   $('#hh-add').onclick = () => { db.settings.household.push({ id: uid(), name: 'Neue Person', kind: 'adult', factor: 1, likes: '', dislikes: '' }); $('#hh-list').innerHTML = ''; save(); };

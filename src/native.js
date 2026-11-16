@@ -135,6 +135,23 @@ export async function scheduleTraining(days, time, on) {
   return true;
 }
 
+/** Tägliche Erinnerung an Nahrungsergänzung, morgens und abends. names: Liste je Tageszeit. */
+const SUPP_IDS = { morgens: 201, abends: 202 };
+export async function scheduleSupps({ morgens, abends, times, on }) {
+  if (!isNative) return false;
+  await LocalNotifications.cancel({ notifications: Object.values(SUPP_IDS).map(id => ({ id })) }).catch(() => {});
+  const list = [['morgens', morgens], ['abends', abends]].filter(([, n]) => n.length);
+  if (!on || !list.length) return true;
+  if (!(await notifPerm())) throw new NativeError('perm', 'Benachrichtigungen sind blockiert. Erlaube sie in den Android-Einstellungen.');
+  await LocalNotifications.schedule({
+    notifications: list.map(([k, names]) => {
+      const [h, m] = (times[k] || (k === 'morgens' ? '07:00' : '21:00')).split(':').map(Number);
+      return { id: SUPP_IDS[k], title: k === 'morgens' ? 'Morgens einnehmen' : 'Abends einnehmen', body: names.join(', '), schedule: { on: { hour: h, minute: m }, allowWhileIdle: true } };
+    })
+  });
+  return true;
+}
+
 /** items: [{id, title, body, at: Date}] — ersetzt alle Garantie-Erinnerungen. */
 export async function scheduleWarranty(items) {
   if (!isNative) return;

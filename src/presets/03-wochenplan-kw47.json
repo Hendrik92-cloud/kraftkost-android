@@ -1,0 +1,1083 @@
+{
+ "id": "wochenplan-2026-11-16-v2",
+ "titel": "Wochenplan 16.–22. November",
+ "beschreibung": "Für die Familie: abends einmal kochen für alle, ohne Bohnen. Ersetzt den vorigen Wochenplan und dessen Einkaufsliste.",
+ "art": "paket",
+ "einkauf_entfernen": [
+  {
+   "name": "Champignons",
+   "menge": "1 kg"
+  },
+  {
+   "name": "Paprika",
+   "menge": "6"
+  },
+  {
+   "name": "Gurken",
+   "menge": "3"
+  },
+  {
+   "name": "Tomaten",
+   "menge": "6"
+  },
+  {
+   "name": "Zucchini",
+   "menge": "2"
+  },
+  {
+   "name": "Möhren",
+   "menge": "3"
+  },
+  {
+   "name": "Zwiebeln",
+   "menge": "4"
+  },
+  {
+   "name": "Kartoffeln",
+   "menge": "2,5 kg"
+  },
+  {
+   "name": "Hokkaido-Kürbis",
+   "menge": "1"
+  },
+  {
+   "name": "Äpfel",
+   "menge": "5"
+  },
+  {
+   "name": "Bananen",
+   "menge": "3"
+  },
+  {
+   "name": "Zitrone",
+   "menge": "1"
+  },
+  {
+   "name": "Kopfsalat",
+   "menge": "1"
+  },
+  {
+   "name": "Hähnchenbrust",
+   "menge": "300 g"
+  },
+  {
+   "name": "Rinderhack, mager",
+   "menge": "800 g"
+  },
+  {
+   "name": "Rinderfilet",
+   "menge": "250 g"
+  },
+  {
+   "name": "Schweinefilet",
+   "menge": "600 g"
+  },
+  {
+   "name": "Kochschinken",
+   "menge": "150 g"
+  },
+  {
+   "name": "Körniger Frischkäse",
+   "menge": "5 × 200 g"
+  },
+  {
+   "name": "Magerquark",
+   "menge": "4 × 250 g"
+  },
+  {
+   "name": "Skyr natur",
+   "menge": "2 × 450 g"
+  },
+  {
+   "name": "Eier",
+   "menge": "15 Stück"
+  },
+  {
+   "name": "Milch 1,5 %",
+   "menge": "1 l"
+  },
+  {
+   "name": "Naturjoghurt 1,5 %",
+   "menge": "750 g"
+  },
+  {
+   "name": "Mozzarella light",
+   "menge": "3 × 125 g"
+  },
+  {
+   "name": "Feta",
+   "menge": "1 Pack"
+  },
+  {
+   "name": "Geriebener Käse light",
+   "menge": "1 Beutel"
+  },
+  {
+   "name": "Parmesan",
+   "menge": "1 Stück"
+  },
+  {
+   "name": "Kochsahne 15 %",
+   "menge": "2 × 200 ml"
+  },
+  {
+   "name": "Schmand light",
+   "menge": "1 Becher"
+  },
+  {
+   "name": "Kräuterquark",
+   "menge": "1 Becher"
+  },
+  {
+   "name": "Gnocchi",
+   "menge": "600 g"
+  },
+  {
+   "name": "Pizzateig",
+   "menge": "2 Rollen"
+  },
+  {
+   "name": "Haferflocken",
+   "menge": "500 g"
+  },
+  {
+   "name": "Vollkornbrot",
+   "menge": "1 Laib"
+  },
+  {
+   "name": "Vollkorntoast",
+   "menge": "1 Pack"
+  },
+  {
+   "name": "Vollkornbrötchen",
+   "menge": "6"
+  },
+  {
+   "name": "Vollkorn-Wraps",
+   "menge": "1 Pack"
+  },
+  {
+   "name": "Couscous",
+   "menge": "500 g"
+  },
+  {
+   "name": "Reis",
+   "menge": "1 kg"
+  },
+  {
+   "name": "Vollkorn-Spaghetti",
+   "menge": "500 g"
+  },
+  {
+   "name": "Rote Linsen",
+   "menge": "500 g"
+  },
+  {
+   "name": "Thunfisch naturell",
+   "menge": "2 Dosen"
+  },
+  {
+   "name": "Kidneybohnen",
+   "menge": "3 Dosen"
+  },
+  {
+   "name": "Mais",
+   "menge": "2 Dosen"
+  },
+  {
+   "name": "Passierte Tomaten",
+   "menge": "3 × 500 g"
+  },
+  {
+   "name": "Gehackte Tomaten",
+   "menge": "2 Dosen"
+  },
+  {
+   "name": "Kokosmilch light",
+   "menge": "1 Dose"
+  },
+  {
+   "name": "Backkakao",
+   "menge": "1 Pack"
+  },
+  {
+   "name": "Honig",
+   "menge": "1 Glas"
+  },
+  {
+   "name": "Gemüsebrühe",
+   "menge": "1 Glas"
+  },
+  {
+   "name": "TK-Beeren",
+   "menge": "1 kg"
+  },
+  {
+   "name": "TK-Blattspinat",
+   "menge": "450 g"
+  },
+  {
+   "name": "TK grüne Bohnen",
+   "menge": "450 g"
+  },
+  {
+   "name": "TK-Erbsen",
+   "menge": "450 g"
+  }
+ ],
+ "wochenplan": {
+  "art": "wochenplan",
+  "ziel_kcal": 1900,
+  "tage": [
+   {
+    "datum": "2026-11-16",
+    "mahlzeiten": [
+     {
+      "slot": "Frühstück",
+      "name": "Eiweiß-Shake mit ½ l Milch",
+      "kcal": 460,
+      "protein": 63,
+      "kohlenhydrate": 27,
+      "fett": 11,
+      "zeit": "2 min",
+      "zutaten": [
+       {
+        "name": "Eiweißpulver (ESN)",
+        "menge": "60 g"
+       },
+       {
+        "name": "Milch 1,5 %",
+        "menge": "500 ml"
+       }
+      ],
+      "zubereitung": "Wie immer. Wert gerechnet mit 60 g Pulver und Milch 1,5 %; passt das nicht, über „Ändern“ anpassen.",
+      "nur_ich": true
+     },
+     {
+      "slot": "Nachmittag",
+      "name": "Körniger Frischkäse mit Gurke auf Vollkornbrot",
+      "kcal": 420,
+      "protein": 30,
+      "kohlenhydrate": 46,
+      "fett": 10,
+      "zeit": "5 min",
+      "zutaten": [
+       {
+        "name": "Körniger Frischkäse",
+        "menge": "200 g"
+       },
+       {
+        "name": "Vollkornbrot",
+        "menge": "2 Scheiben"
+       },
+       {
+        "name": "Gurke",
+        "menge": "½"
+       }
+      ],
+      "zubereitung": "Brot mit körnigem Frischkäse bestreichen, Gurke in Scheiben drauf, Salz und Pfeffer.",
+      "nur_ich": true
+     },
+     {
+      "slot": "Abend",
+      "name": "Spaghetti Bolognese mit Rinderhack",
+      "kcal": 950,
+      "protein": 55,
+      "kohlenhydrate": 110,
+      "fett": 28,
+      "zeit": "35 min",
+      "zutaten": [
+       {
+        "name": "Vollkorn-Spaghetti",
+        "menge": "500 g"
+       },
+       {
+        "name": "Rinderhack, mager",
+        "menge": "500 g"
+       },
+       {
+        "name": "Passierte Tomaten",
+        "menge": "700 g"
+       },
+       {
+        "name": "Möhren",
+        "menge": "2"
+       },
+       {
+        "name": "Zwiebel",
+        "menge": "1"
+       },
+       {
+        "name": "Parmesan",
+        "menge": "30 g"
+       }
+      ],
+      "zubereitung": "Zwiebel und fein geraspelte Möhren anbraten, Hack dazu und krümelig braten. Tomaten dazu, 20 Minuten köcheln, mit Salz, Pfeffer und Oregano würzen. Spaghetti kochen, Parmesan drüber.",
+      "kind_tipp": "Die Möhren verschwinden fein geraspelt in der Soße."
+     }
+    ]
+   },
+   {
+    "datum": "2026-11-17",
+    "mahlzeiten": [
+     {
+      "slot": "Frühstück",
+      "name": "Eiweiß-Shake mit ½ l Milch",
+      "kcal": 460,
+      "protein": 63,
+      "kohlenhydrate": 27,
+      "fett": 11,
+      "zeit": "2 min",
+      "zutaten": [
+       {
+        "name": "Eiweißpulver (ESN)",
+        "menge": "60 g"
+       },
+       {
+        "name": "Milch 1,5 %",
+        "menge": "500 ml"
+       }
+      ],
+      "zubereitung": "Wie immer. Wert gerechnet mit 60 g Pulver und Milch 1,5 %; passt das nicht, über „Ändern“ anpassen.",
+      "nur_ich": true
+     },
+     {
+      "slot": "Nachmittag",
+      "name": "Thunfisch-Brot mit körnigem Frischkäse",
+      "kcal": 450,
+      "protein": 42,
+      "kohlenhydrate": 40,
+      "fett": 12,
+      "zeit": "5 min",
+      "zutaten": [
+       {
+        "name": "Thunfisch naturell",
+        "menge": "1 Dose"
+       },
+       {
+        "name": "Körniger Frischkäse",
+        "menge": "100 g"
+       },
+       {
+        "name": "Vollkornbrot",
+        "menge": "2 Scheiben"
+       }
+      ],
+      "zubereitung": "Thunfisch abtropfen lassen, mit körnigem Frischkäse, Salz und Pfeffer verrühren, aufs Brot.",
+      "nur_ich": true
+     },
+     {
+      "slot": "Abend",
+      "name": "Hähnchen-Reispfanne mit Paprika und Brokkoli",
+      "kcal": 900,
+      "protein": 65,
+      "kohlenhydrate": 105,
+      "fett": 20,
+      "zeit": "30 min",
+      "zutaten": [
+       {
+        "name": "Hähnchenbrust",
+        "menge": "600 g"
+       },
+       {
+        "name": "Reis",
+        "menge": "300 g"
+       },
+       {
+        "name": "Paprika",
+        "menge": "2"
+       },
+       {
+        "name": "Brokkoli",
+        "menge": "1"
+       },
+       {
+        "name": "Zwiebel",
+        "menge": "1"
+       }
+      ],
+      "zubereitung": "Reis kochen. Hähnchen in Streifen scharf anbraten, rausnehmen. Zwiebel, Paprika und Brokkoli-Röschen anbraten, mit einem Schluck Wasser und etwas Sojasoße 5 Minuten garen. Hähnchen und Reis unterheben."
+     }
+    ]
+   },
+   {
+    "datum": "2026-11-18",
+    "mahlzeiten": [
+     {
+      "slot": "Frühstück",
+      "name": "Eiweiß-Shake mit ½ l Milch",
+      "kcal": 460,
+      "protein": 63,
+      "kohlenhydrate": 27,
+      "fett": 11,
+      "zeit": "2 min",
+      "zutaten": [
+       {
+        "name": "Eiweißpulver (ESN)",
+        "menge": "60 g"
+       },
+       {
+        "name": "Milch 1,5 %",
+        "menge": "500 ml"
+       }
+      ],
+      "zubereitung": "Wie immer. Wert gerechnet mit 60 g Pulver und Milch 1,5 %; passt das nicht, über „Ändern“ anpassen.",
+      "nur_ich": true
+     },
+     {
+      "slot": "Nachmittag",
+      "name": "Skyr mit Haferflocken und Banane",
+      "kcal": 450,
+      "protein": 30,
+      "kohlenhydrate": 68,
+      "fett": 6,
+      "zeit": "3 min",
+      "zutaten": [
+       {
+        "name": "Skyr natur",
+        "menge": "250 g"
+       },
+       {
+        "name": "Haferflocken",
+        "menge": "40 g"
+       },
+       {
+        "name": "Banane",
+        "menge": "1"
+       }
+      ],
+      "zubereitung": "Alles in einer Schüssel mischen, Banane in Scheiben drauf.",
+      "nur_ich": true
+     },
+     {
+      "slot": "Abend",
+      "name": "Thunfisch-Nudelauflauf mit Brokkoli",
+      "kcal": 980,
+      "protein": 62,
+      "kohlenhydrate": 100,
+      "fett": 32,
+      "zeit": "20 min + 25 min Ofen",
+      "zutaten": [
+       {
+        "name": "Penne",
+        "menge": "500 g"
+       },
+       {
+        "name": "Thunfisch naturell",
+        "menge": "3 Dosen"
+       },
+       {
+        "name": "Brokkoli",
+        "menge": "1"
+       },
+       {
+        "name": "Kochsahne 15 %",
+        "menge": "200 ml"
+       },
+       {
+        "name": "Milch 1,5 %",
+        "menge": "300 ml"
+       },
+       {
+        "name": "Geriebener Käse light",
+        "menge": "150 g"
+       }
+      ],
+      "zubereitung": "Eine Portion mehr kochen: Das ist deine Kleinigkeit am Donnerstag. Penne und Brokkoli zusammen 8 Minuten kochen. Thunfisch, Kochsahne und Milch verrühren, würzen, alles in eine Form, Käse drüber. Bei 200 °C 25 Minuten backen."
+     }
+    ]
+   },
+   {
+    "datum": "2026-11-19",
+    "mahlzeiten": [
+     {
+      "slot": "Frühstück",
+      "name": "Eiweiß-Shake mit ½ l Milch",
+      "kcal": 460,
+      "protein": 63,
+      "kohlenhydrate": 27,
+      "fett": 11,
+      "zeit": "2 min",
+      "zutaten": [
+       {
+        "name": "Eiweißpulver (ESN)",
+        "menge": "60 g"
+       },
+       {
+        "name": "Milch 1,5 %",
+        "menge": "500 ml"
+       }
+      ],
+      "zubereitung": "Wie immer. Wert gerechnet mit 60 g Pulver und Milch 1,5 %; passt das nicht, über „Ändern“ anpassen.",
+      "nur_ich": true
+     },
+     {
+      "slot": "Nachmittag",
+      "name": "Rest vom Thunfisch-Nudelauflauf",
+      "kcal": 450,
+      "protein": 28,
+      "kohlenhydrate": 46,
+      "fett": 15,
+      "zeit": "aufwärmen",
+      "zutaten": [],
+      "zubereitung": "Vom Mittwochabend, kurz aufwärmen.",
+      "nur_ich": true
+     },
+     {
+      "slot": "Abend",
+      "name": "Gnocchi-Pfanne mit Champignons, Spinat und Schinken",
+      "kcal": 950,
+      "protein": 40,
+      "kohlenhydrate": 120,
+      "fett": 30,
+      "zeit": "25 min",
+      "zutaten": [
+       {
+        "name": "Gnocchi",
+        "menge": "800 g"
+       },
+       {
+        "name": "Champignons",
+        "menge": "400 g"
+       },
+       {
+        "name": "TK-Blattspinat",
+        "menge": "300 g"
+       },
+       {
+        "name": "Kochschinken",
+        "menge": "150 g"
+       },
+       {
+        "name": "Kochsahne 15 %",
+        "menge": "200 ml"
+       },
+       {
+        "name": "Parmesan",
+        "menge": "30 g"
+       }
+      ],
+      "zubereitung": "Gnocchi in der Pfanne goldbraun braten, rausnehmen. Champignons und Schinkenwürfel anbraten, Spinat dazu, mit Kochsahne ablöschen. Gnocchi unterheben, Parmesan drüber.",
+      "kind_tipp": "Champignons, sein Lieblingsgemüse."
+     }
+    ]
+   },
+   {
+    "datum": "2026-11-20",
+    "mahlzeiten": [
+     {
+      "slot": "Frühstück",
+      "name": "Eiweiß-Shake mit ½ l Milch",
+      "kcal": 460,
+      "protein": 63,
+      "kohlenhydrate": 27,
+      "fett": 11,
+      "zeit": "2 min",
+      "zutaten": [
+       {
+        "name": "Eiweißpulver (ESN)",
+        "menge": "60 g"
+       },
+       {
+        "name": "Milch 1,5 %",
+        "menge": "500 ml"
+       }
+      ],
+      "zubereitung": "Wie immer. Wert gerechnet mit 60 g Pulver und Milch 1,5 %; passt das nicht, über „Ändern“ anpassen.",
+      "nur_ich": true
+     },
+     {
+      "slot": "Nachmittag",
+      "name": "Wrap mit körnigem Frischkäse und Schinken",
+      "kcal": 440,
+      "protein": 34,
+      "kohlenhydrate": 40,
+      "fett": 14,
+      "zeit": "5 min",
+      "zutaten": [
+       {
+        "name": "Vollkorn-Wraps",
+        "menge": "2"
+       },
+       {
+        "name": "Körniger Frischkäse",
+        "menge": "100 g"
+       },
+       {
+        "name": "Kochschinken",
+        "menge": "50 g"
+       },
+       {
+        "name": "Tomate",
+        "menge": "1"
+       }
+      ],
+      "zubereitung": "Wraps mit körnigem Frischkäse bestreichen, Schinken und Tomate drauf, einrollen.",
+      "nur_ich": true
+     },
+     {
+      "slot": "Abend",
+      "name": "Pizza-Abend mit Schinken, Champignons und Thunfisch",
+      "kcal": 1000,
+      "protein": 55,
+      "kohlenhydrate": 105,
+      "fett": 35,
+      "zeit": "15 min + 15 min Ofen",
+      "zutaten": [
+       {
+        "name": "Pizzateig (Kühlregal)",
+        "menge": "2 Rollen"
+       },
+       {
+        "name": "Passierte Tomaten",
+        "menge": "200 g"
+       },
+       {
+        "name": "Champignons",
+        "menge": "250 g"
+       },
+       {
+        "name": "Kochschinken",
+        "menge": "150 g"
+       },
+       {
+        "name": "Thunfisch naturell",
+        "menge": "1 Dose"
+       },
+       {
+        "name": "Mozzarella light",
+        "menge": "2 × 125 g"
+       },
+       {
+        "name": "Paprika",
+        "menge": "1"
+       }
+      ],
+      "zubereitung": "Teig ausrollen, Tomaten mit Oregano drauf, jeder belegt sein Stück selbst. Bei 220 °C etwa 12–15 Minuten backen.",
+      "kind_tipp": "Er darf seine Ecke selbst belegen."
+     }
+    ]
+   },
+   {
+    "datum": "2026-11-21",
+    "mahlzeiten": [
+     {
+      "slot": "Frühstück",
+      "name": "Eiweiß-Shake mit ½ l Milch",
+      "kcal": 460,
+      "protein": 63,
+      "kohlenhydrate": 27,
+      "fett": 11,
+      "zeit": "2 min",
+      "zutaten": [
+       {
+        "name": "Eiweißpulver (ESN)",
+        "menge": "60 g"
+       },
+       {
+        "name": "Milch 1,5 %",
+        "menge": "500 ml"
+       }
+      ],
+      "zubereitung": "Wie immer. Wert gerechnet mit 60 g Pulver und Milch 1,5 %; passt das nicht, über „Ändern“ anpassen.",
+      "nur_ich": true
+     },
+     {
+      "slot": "Nachmittag",
+      "name": "Rührei mit Vollkornbrot",
+      "kcal": 450,
+      "protein": 26,
+      "kohlenhydrate": 30,
+      "fett": 22,
+      "zeit": "8 min",
+      "zutaten": [
+       {
+        "name": "Eier",
+        "menge": "3"
+       },
+       {
+        "name": "Vollkornbrot",
+        "menge": "2 Scheiben"
+       }
+      ],
+      "zubereitung": "Eier verquirlen, in einer beschichteten Pfanne stocken lassen, mit Brot.",
+      "nur_ich": true
+     },
+     {
+      "slot": "Abend",
+      "name": "Rinderfilet mit Ofenkartoffeln, Brokkoli und Kräuterquark",
+      "kcal": 1050,
+      "protein": 70,
+      "kohlenhydrate": 85,
+      "fett": 38,
+      "zeit": "45 min",
+      "zutaten": [
+       {
+        "name": "Rinderfilet",
+        "menge": "550 g"
+       },
+       {
+        "name": "Kartoffeln",
+        "menge": "1,2 kg"
+       },
+       {
+        "name": "Brokkoli",
+        "menge": "1"
+       },
+       {
+        "name": "Kräuterquark",
+        "menge": "200 g"
+       }
+      ],
+      "zubereitung": "Kartoffeln vierteln, mit etwas Öl und Salz bei 200 °C 35 Minuten backen. Filet rundum scharf anbraten, dann bei 120 °C etwa 15 Minuten im Ofen ziehen lassen. Brokkoli dämpfen, Kräuterquark dazu."
+     },
+     {
+      "slot": "Snack",
+      "name": "Nachtisch: Bratapfel mit Haferflocken und Zimt",
+      "kcal": 340,
+      "protein": 5,
+      "kohlenhydrate": 62,
+      "fett": 8,
+      "zeit": "10 min + 25 min Ofen",
+      "zutaten": [
+       {
+        "name": "Äpfel",
+        "menge": "3"
+       },
+       {
+        "name": "Haferflocken",
+        "menge": "30 g"
+       },
+       {
+        "name": "Honig",
+        "menge": "2 EL"
+       }
+      ],
+      "zubereitung": "Äpfel entkernen, mit Haferflocken, Honig und Zimt füllen, bei 180 °C 25 Minuten backen.",
+      "kind_tipp": "Mit ein paar Rosinen wird es noch süßer."
+     }
+    ]
+   },
+   {
+    "datum": "2026-11-22",
+    "mahlzeiten": [
+     {
+      "slot": "Frühstück",
+      "name": "Eiweiß-Shake mit ½ l Milch",
+      "kcal": 460,
+      "protein": 63,
+      "kohlenhydrate": 27,
+      "fett": 11,
+      "zeit": "2 min",
+      "zutaten": [
+       {
+        "name": "Eiweißpulver (ESN)",
+        "menge": "60 g"
+       },
+       {
+        "name": "Milch 1,5 %",
+        "menge": "500 ml"
+       }
+      ],
+      "zubereitung": "Wie immer. Wert gerechnet mit 60 g Pulver und Milch 1,5 %; passt das nicht, über „Ändern“ anpassen.",
+      "nur_ich": true
+     },
+     {
+      "slot": "Nachmittag",
+      "name": "Magerquark mit Beeren und Haferflocken",
+      "kcal": 420,
+      "protein": 38,
+      "kohlenhydrate": 50,
+      "fett": 4,
+      "zeit": "3 min",
+      "zutaten": [
+       {
+        "name": "Magerquark",
+        "menge": "250 g"
+       },
+       {
+        "name": "TK-Beeren",
+        "menge": "150 g"
+       },
+       {
+        "name": "Haferflocken",
+        "menge": "30 g"
+       }
+      ],
+      "zubereitung": "Quark mit einem Schluck Wasser glatt rühren, Beeren und Haferflocken unterheben.",
+      "nur_ich": true
+     },
+     {
+      "slot": "Abend",
+      "name": "Schweinefilet mit Champignon-Rahm, Reis und Erbsen",
+      "kcal": 1050,
+      "protein": 70,
+      "kohlenhydrate": 95,
+      "fett": 30,
+      "zeit": "35 min",
+      "zutaten": [
+       {
+        "name": "Schweinefilet",
+        "menge": "600 g"
+       },
+       {
+        "name": "Champignons",
+        "menge": "400 g"
+       },
+       {
+        "name": "Kochsahne 15 %",
+        "menge": "200 ml"
+       },
+       {
+        "name": "Reis",
+        "menge": "300 g"
+       },
+       {
+        "name": "TK-Erbsen",
+        "menge": "300 g"
+       }
+      ],
+      "zubereitung": "Filet in Medaillons schneiden und anbraten, rausnehmen. Champignons anbraten, mit Kochsahne ablöschen, Filet zurück in die Soße. Reis und Erbsen dazu.",
+      "kind_tipp": "Champignons in der Soße."
+     },
+     {
+      "slot": "Snack",
+      "name": "Nachtisch: Schoko-Quarkcreme mit Banane",
+      "kcal": 340,
+      "protein": 30,
+      "kohlenhydrate": 40,
+      "fett": 4,
+      "zeit": "5 min",
+      "zutaten": [
+       {
+        "name": "Magerquark",
+        "menge": "500 g"
+       },
+       {
+        "name": "Backkakao",
+        "menge": "2 EL"
+       },
+       {
+        "name": "Bananen",
+        "menge": "2"
+       },
+       {
+        "name": "Milch 1,5 %",
+        "menge": "100 ml"
+       }
+      ],
+      "zubereitung": "Quark mit Milch, Kakao und einer zerdrückten Banane glatt rühren, die zweite Banane in Scheiben drauf. Wer es süßer mag, etwas Honig.",
+      "kind_tipp": "Schmeckt wie Schokopudding."
+     }
+    ]
+   }
+  ],
+  "einkauf": [
+   {
+    "name": "Brokkoli",
+    "menge": "3",
+    "kategorie": "Obst & Gemüse"
+   },
+   {
+    "name": "Champignons",
+    "menge": "1 kg",
+    "kategorie": "Obst & Gemüse"
+   },
+   {
+    "name": "Paprika",
+    "menge": "3",
+    "kategorie": "Obst & Gemüse"
+   },
+   {
+    "name": "Möhren",
+    "menge": "2",
+    "kategorie": "Obst & Gemüse"
+   },
+   {
+    "name": "Zwiebeln",
+    "menge": "2",
+    "kategorie": "Obst & Gemüse"
+   },
+   {
+    "name": "Gurke",
+    "menge": "1",
+    "kategorie": "Obst & Gemüse"
+   },
+   {
+    "name": "Tomate",
+    "menge": "1",
+    "kategorie": "Obst & Gemüse"
+   },
+   {
+    "name": "Kartoffeln",
+    "menge": "1,5 kg",
+    "kategorie": "Obst & Gemüse"
+   },
+   {
+    "name": "Äpfel",
+    "menge": "3",
+    "kategorie": "Obst & Gemüse"
+   },
+   {
+    "name": "Bananen",
+    "menge": "3",
+    "kategorie": "Obst & Gemüse"
+   },
+   {
+    "name": "Rinderhack, mager",
+    "menge": "500 g",
+    "kategorie": "Fleisch & Fisch"
+   },
+   {
+    "name": "Hähnchenbrust",
+    "menge": "600 g",
+    "kategorie": "Fleisch & Fisch"
+   },
+   {
+    "name": "Rinderfilet",
+    "menge": "550 g",
+    "kategorie": "Fleisch & Fisch"
+   },
+   {
+    "name": "Schweinefilet",
+    "menge": "600 g",
+    "kategorie": "Fleisch & Fisch"
+   },
+   {
+    "name": "Kochschinken",
+    "menge": "350 g",
+    "kategorie": "Fleisch & Fisch"
+   },
+   {
+    "name": "Milch 1,5 %",
+    "menge": "4 l",
+    "kategorie": "Kühlregal"
+   },
+   {
+    "name": "Körniger Frischkäse",
+    "menge": "2 × 200 g",
+    "kategorie": "Kühlregal"
+   },
+   {
+    "name": "Skyr natur",
+    "menge": "1 × 450 g",
+    "kategorie": "Kühlregal"
+   },
+   {
+    "name": "Magerquark",
+    "menge": "3 × 250 g",
+    "kategorie": "Kühlregal"
+   },
+   {
+    "name": "Eier",
+    "menge": "6 Stück",
+    "kategorie": "Kühlregal"
+   },
+   {
+    "name": "Kochsahne 15 %",
+    "menge": "3 × 200 ml",
+    "kategorie": "Kühlregal"
+   },
+   {
+    "name": "Geriebener Käse light",
+    "menge": "1 Beutel",
+    "kategorie": "Kühlregal"
+   },
+   {
+    "name": "Mozzarella light",
+    "menge": "2 × 125 g",
+    "kategorie": "Kühlregal"
+   },
+   {
+    "name": "Parmesan",
+    "menge": "1 Stück",
+    "kategorie": "Kühlregal"
+   },
+   {
+    "name": "Kräuterquark",
+    "menge": "1 Becher",
+    "kategorie": "Kühlregal"
+   },
+   {
+    "name": "Gnocchi",
+    "menge": "800 g",
+    "kategorie": "Kühlregal"
+   },
+   {
+    "name": "Pizzateig",
+    "menge": "2 Rollen",
+    "kategorie": "Kühlregal"
+   },
+   {
+    "name": "Vollkorn-Spaghetti",
+    "menge": "500 g",
+    "kategorie": "Brot & Trockenware"
+   },
+   {
+    "name": "Penne",
+    "menge": "500 g",
+    "kategorie": "Brot & Trockenware"
+   },
+   {
+    "name": "Reis",
+    "menge": "1 kg",
+    "kategorie": "Brot & Trockenware"
+   },
+   {
+    "name": "Vollkornbrot",
+    "menge": "1 Laib",
+    "kategorie": "Brot & Trockenware"
+   },
+   {
+    "name": "Vollkorn-Wraps",
+    "menge": "1 Pack",
+    "kategorie": "Brot & Trockenware"
+   },
+   {
+    "name": "Haferflocken",
+    "menge": "500 g",
+    "kategorie": "Brot & Trockenware"
+   },
+   {
+    "name": "Thunfisch naturell",
+    "menge": "5 Dosen",
+    "kategorie": "Konserven & Vorrat"
+   },
+   {
+    "name": "Passierte Tomaten",
+    "menge": "2 × 500 g",
+    "kategorie": "Konserven & Vorrat"
+   },
+   {
+    "name": "Backkakao",
+    "menge": "1 Pack",
+    "kategorie": "Konserven & Vorrat"
+   },
+   {
+    "name": "Honig",
+    "menge": "1 Glas",
+    "kategorie": "Konserven & Vorrat"
+   },
+   {
+    "name": "TK-Blattspinat",
+    "menge": "450 g",
+    "kategorie": "Tiefkühl"
+   },
+   {
+    "name": "TK-Erbsen",
+    "menge": "450 g",
+    "kategorie": "Tiefkühl"
+   },
+   {
+    "name": "TK-Beeren",
+    "menge": "1 Pack",
+    "kategorie": "Tiefkühl"
+   },
+   {
+    "name": "Eiweißpulver (ESN)",
+    "menge": "Vorrat prüfen",
+    "kategorie": "Sonstiges"
+   }
+  ]
+ }
+}

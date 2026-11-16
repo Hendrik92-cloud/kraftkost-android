@@ -21,6 +21,8 @@ function renderTargets() {
 
 function renderList() {
   const C = companies();
+  const openN = db.notes.filter(n => n.company && !n.sentAt).length;
+  $('#n-sum').textContent = db.notes.length ? `${db.notes.length} gespeichert${openN ? ` · ${openN} noch zu mailen` : ''}` : '';
   const F = { Alle: () => true, Offen: n => n.company && !n.sentAt, Privat: n => !n.company };
   C.forEach(c => { F[c.name] = n => n.company === c.id; });
   if (!F[filter]) filter = 'Alle';

@@ -1,0 +1,30 @@
+{
+  "id": "ziele-2026-11-16",
+  "titel": "Kalorienziele und Shake-Frühstück",
+  "beschreibung": "Persönlich: Mo–Fr 1.900 kcal, Sa/So 2.300 kcal, 140 g Eiweiß. Frühstück immer Eiweiß-Shake, nachmittags eine Kleinigkeit, abends die Hauptmahlzeit.",
+  "art": "paket",
+  "einstellungen": {
+    "kcal": 1900,
+    "kcal_wochenende": 2300,
+    "eiweiss": 140,
+    "gewohnheiten": "Frühstück immer Eiweiß-Shake (60 g ESN-Pulver mit 0,5 l Milch, etwa 460 kcal und 63 g Eiweiß), früher Nachmittag eine Kleinigkeit, abends die Hauptmahlzeit für alle. Keine Bohnen.",
+    "vorlieben": {
+      "ich": {
+        "mag": "Thunfisch, körniger Frischkäse, Rinderfilet, Hähnchen",
+        "mag_nicht": "Bohnen (alle Sorten)"
+      },
+      "frau": {
+        "mag_nicht": "Hähnchen nicht so gern (isst es aber mit)"
+      }
+    }
+  },
+  "gerichte": [
+    {
+      "name": "Eiweiß-Shake mit ½ l Milch",
+      "kcal": 460,
+      "protein": 63,
+      "kohlenhydrate": 27,
+      "fett": 11
+    }
+  ]
+}

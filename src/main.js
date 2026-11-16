@@ -6,7 +6,7 @@ import '@fontsource/barlow-condensed/latin-700.css';
 import { App } from '@capacitor/app';
 import { db, load, onChange, flush, save } from './store.js';
 import { S, renderAll } from './app.js';
-import { $, $$, today, addDays, fmtDay } from './util.js';
+import { $, $$, esc, today, addDays, fmtDay } from './util.js';
 import { isNative, tap } from './native.js';
 import { initTraining, resetPlanSel } from './training.js';
 import { initEssen } from './essen.js';
@@ -15,6 +15,7 @@ import { initEinkauf } from './einkauf.js';
 import { initMehr, showMore } from './mehr.js';
 import { initNotes } from './notes.js';
 import { initImporter, importAny } from './importer.js';
+import { initSupps } from './supps.js';
 const presets = import.meta.glob('./presets/*.json', { eager: true });
 import { toast } from './util.js';
 import { startSync, connected, pull } from './sync.js';
@@ -44,9 +45,33 @@ function setDay(d) {
   renderAll();
 }
 
+/**
+ * Im Chat vorbereitete Pakete (Pläne, Ziele, Erinnerungen) zur Übernahme anbieten.
+ * Mit Auswahl, damit auf einem zweiten Handy nur Passendes übernommen wird.
+ */
+function showPresets() {
+  const applied = new Set(db.settings.presetsApplied || (db.settings.presetApplied ? [db.settings.presetApplied] : []));
+  const pending = Object.entries(presets).sort(([a], [b]) => a.localeCompare(b)).map(([, m]) => m.default || m).filter(p => p?.id && !applied.has(p.id));
+  const box = $('#presets');
+  if (!pending.length) { box.hidden = true; return; }
+  box.hidden = false;
+  box.innerHTML = `<h3>Neu aus dem Claude-Chat</h3>
+    <p class="small muted">Auf einem zweiten Handy nur auswählen, was für diese Person passt.</p>
+    <div class="stack" style="gap:10px">${pending.map((p, i) => `<label class="plain" for="pr-${i}" style="align-items:flex-start"><input type="checkbox" id="pr-${i}" data-pr="${i}" checked><span><b>${esc(p.titel || p.id)}</b>${p.beschreibung ? `<br><span class="small muted">${esc(p.beschreibung)}</span>` : ''}</span></label>`).join('')}</div>
+    <div class="actions"><button type="button" class="primary" id="pr-ok">Übernehmen</button><button type="button" class="ghost" id="pr-no">Nichts davon</button></div>`;
+  const finish = chosen => {
+    const news = [];
+    pending.forEach((p, i) => { if (chosen.includes(i)) { const w = importAny(p); if (w) news.push(w); } applied.add(p.id); });
+    db.settings.presetsApplied = [...applied]; box.hidden = true; save();
+    toast(news.length ? 'Übernommen: ' + news.join(', ') : 'Nichts übernommen');
+  };
+  $('#pr-ok').onclick = () => finish(pending.map((_, i) => i).filter(i => $('#pr-' + i).checked));
+  $('#pr-no').onclick = () => finish([]);
+}
+
 async function boot() {
   await load();
-  initTraining(); initEssen(); initPlan(); initEinkauf(); initNotes(); initMehr(); initImporter();
+  initTraining(); initEssen(); initPlan(); initEinkauf(); initNotes(); initMehr(); initImporter(); initSupps();
   onChange(renderAll);
   startSync(() => S.tab === 'einkauf' || S.tab === 'plan');
   $('#gear').onclick = () => { tap(); showTab('mehr'); };
@@ -73,16 +98,7 @@ async function boot() {
   }
 
   $('#nokey-ok').onclick = () => { db.settings.keyNoticeSeen = true; save(); };
-  // Mitgelieferte Pakete aus dem Chat (Pläne, Ziele) je einmal übernehmen.
-  const applied = new Set(db.settings.presetsApplied || (db.settings.presetApplied ? [db.settings.presetApplied] : []));
-  const news = [];
-  for (const [, mod] of Object.entries(presets).sort(([a], [b]) => a.localeCompare(b))) {
-    const p = mod.default || mod;
-    if (!p?.id || applied.has(p.id)) continue;
-    const what = importAny(p); applied.add(p.id); if (what) news.push(what);
-  }
-  if (news.length) { db.settings.presetsApplied = [...applied]; save(); setTimeout(() => toast('Neu eingetragen: ' + news.join(', ')), 600); }
-  else if (!db.settings.presetsApplied) { db.settings.presetsApplied = [...applied]; }
+  showPresets();
   showTab('training', false);
   setDay(today());
 }

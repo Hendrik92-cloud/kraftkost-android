@@ -4,7 +4,7 @@ import { $, $$, esc, de, num, uid, today, fmtDay, toast, armed } from './util.js
 import { ask, askJSON, aiMsg, hasKey } from './claude.js';
 import { listen, takePhoto, scanBarcode, lookupFood } from './native.js';
 
-export const SLOTS = ['Frühstück', 'Mittag', 'Abend', 'Snack'];
+export const SLOTS = ['Frühstück', 'Mittag', 'Nachmittag', 'Abend', 'Snack'];
 let parts = [];
 
 export function dayTotals(day = S.day) {
@@ -58,7 +58,7 @@ function renderQuick() {
   if (!items.length) { box.hidden = true; return; }
   box.hidden = false;
   box.innerHTML = `<h3>Schnell eintragen</h3><div class="recent">${items.map((m, i) => `<button type="button" class="sm" data-quick="${i}">${m.label ? '<span class="tag">Plan</span> ' : ''}${esc(m.name.length > 28 ? m.name.slice(0, 27) + '…' : m.name)} · ${de(m.kcal)}</button>`).join('')}</div>
-    <p class="small muted">Ein Tipp trägt es für ${S.day === today() ? 'heute' : fmtDay(S.day)} ein (${guessSlot()}).</p>`;
+    <p class="small muted">Ein Tipp trägt es für ${S.day === today() ? 'heute' : fmtDay(S.day)} ein.</p>`;
   box.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => {
     const m = items[+b.dataset.quick];
     logMeal({ slot: m.label ? m.slot : guessSlot(), name: m.name, kcal: m.kcal, protein: m.protein, carbs: m.carbs, fat: m.fat, parts: m.parts });
@@ -147,7 +147,7 @@ function resetForm() {
   ['#m-name', '#m-kcal', '#m-p', '#m-c', '#m-f'].forEach(i => ($(i).value = ''));
   $('#m-hint').textContent = ''; $('#m-fav').checked = false; $('#m-bcbox').innerHTML = ''; parts = []; renderParts(); macSum();
 }
-const guessSlot = () => { const h = new Date().getHours(); return h < 10 ? 'Frühstück' : h < 15 ? 'Mittag' : h < 21 ? 'Abend' : 'Snack'; };
+const guessSlot = () => { const h = new Date().getHours(); return h < 10 ? 'Frühstück' : h < 13 ? 'Mittag' : h < 17 ? 'Nachmittag' : h < 21 ? 'Abend' : 'Snack'; };
 
 async function getTip() {
   const out = $('#m-tip');

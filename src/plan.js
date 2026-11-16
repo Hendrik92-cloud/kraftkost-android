@@ -10,7 +10,7 @@ import { scheduleTraining } from './native.js';
 let sel = null, editing = null;
 /** Änderung am Plan für den Familien-Abgleich vormerken. */
 const touchPlan = () => { if (db.mealplan) { db.mealplan.updatedAt = Date.now(); db.mealplan.dirty = true; } };
-const slotsFor = n => ['Frühstück', 'Mittag', 'Abend', 'Snack', 'Snack'].slice(0, n);
+const slotsFor = n => (n <= 3 ? ['Frühstück', 'Nachmittag', 'Abend'] : n === 4 ? ['Frühstück', 'Nachmittag', 'Abend', 'Snack'] : ['Frühstück', 'Mittag', 'Nachmittag', 'Abend', 'Snack']);
 
 const mapMeal = m => ({
   id: uid(), slot: String(m.slot || 'Snack'), name: String(m.name || ''),
@@ -168,13 +168,13 @@ async function createPlan(e) {
   const bridge = !hasKey();
   const prompt = `Erstelle einen Familien-Essensplan für 7 Tage auf Deutsch. Alle essen dieselben Gerichte, nur die Portionen unterscheiden sich.
 Haushalt: ${householdText()}.
-Mahlzeiten pro Tag: ${slotsFor(meals).join(', ')}. Frühstück und Snacks dürfen einfach sein; Mittag kann an Werktagen etwas Mitnehmbares sein.
+Mahlzeiten pro Tag: ${slotsFor(meals).join(', ')}. Abends wird einmal für alle gekocht, alle essen dasselbe; keine getrennten Gerichte für einzelne Personen. Nachmittag ist eine schnelle Kleinigkeit ohne Kochen, gern auch der Rest vom Vorabend.${s.habits ? '\nFeste Gewohnheiten: ' + s.habits + ' Diese Mahlzeit jeden Tag genau so einplanen und mitzählen.' : ''}
 Trainingsziel des Erwachsenen mit Portion 1: ${db.plan?.goal || 'fit und gesund bleiben'}.${w ? ` Körpergewicht ${w} kg.` : ''}
 Tagesziel für diese Portion: ${s.kcalGoal ? kcalText() : 'keine Angabe. Wähle ein passendes, moderates Ziel und gib es in "ziel_kcal" an'}${s.proteinGoal ? `, ${de(s.proteinGoal)} g Eiweiß` : ', eiweißreich'}. An Trainingstagen etwas mehr Kohlenhydrate.
 Tage:
 ${dates.map(dt => `${dt} (${WD[wdOf(dt)]}): ${td.includes(wdOf(dt)) ? 'Trainingstag' : 'Ruhetag'}`).join('\n')}
 Aufwand: ${effort}. Wünsche: ${pref || 'keine'}.${liked.length ? ' Gerichte, die gut ankommen: ' + liked.join(', ') + '.' : ''}
-Kindgerecht: nicht scharf, Gemüse gern versteckt oder als Rohkost dazu; bei Bedarf ein kurzer Tipp in "kind_tipp".
+Kindgerecht: nicht scharf, Gemüse gern versteckt oder als Rohkost dazu; bei Bedarf ein kurzer Tipp in "kind_tipp". Mag das Kind etwas nicht, isst es ein Brot; dafür keine Extra-Gerichte planen.
 Reste und Vorkochen sinnvoll nutzen, damit der Einkauf klein bleibt. Einfache Zutaten vom Discounter.${offers ? '\nBevorzuge Zutaten aus diesen aktuellen Angeboten:\n' + offers : ''}${keep.length ? '\nDiese Mahlzeiten stehen fest und bleiben unverändert, plane drumherum: ' + keep.map(m => `${m.date} ${m.slot}: ${m.name}`).join('; ') : ''}
 Mahlzeiten, die nur der Erwachsene mit Portion 1 isst (zum Beispiel Frühstück oder Mittag zum Mitnehmen mit Zutaten, die andere nicht mögen), bekommen "nur_ich": true. Dann gelten die Zutatenmengen nur für ihn.
 Nährwerte je Mahlzeit für die Portion 1. Zutatenmengen sonst für den ganzen Haushalt (${factorStr(Math.round(familyFactor() * 10) / 10)} Portionen).
@@ -186,7 +186,7 @@ ${bridge ? `Fasse außerdem alle Zutaten der Woche zu einer Einkaufsliste zusamm
   });
 }
 
-export function applyMealPlan(r, { dates, keep, td, meals, effort, pref }) {
+export function applyMealPlan(r, { dates, keep, td, meals, effort, pref, noGoal: ctxNoGoal }) {
   const s = db.settings;
   const days = (r.tage || []).slice(0, 7).map((t, i) => {
     const dt = dates[i];
@@ -201,7 +201,7 @@ export function applyMealPlan(r, { dates, keep, td, meals, effort, pref }) {
   if (!days.length) return false;
   const shopping = (r.einkauf || []).map(x => ({ name: String(x.name || ''), amount: String(x.menge || ''), cat: CATS.includes(x.kategorie) ? x.kategorie : 'Sonstiges' })).filter(x => x.name);
   db.mealplan = { days, shopping, kcalTarget: num(r.ziel_kcal) || s.kcalGoal || null, mealsPerDay: meals, effort, pref, createdAt: Date.now() };
-  if (!s.kcalGoal && db.mealplan.kcalTarget) s.kcalGoal = db.mealplan.kcalTarget;
+  if (!s.kcalGoal && db.mealplan.kcalTarget && !ctxNoGoal) s.kcalGoal = db.mealplan.kcalTarget;
   touchPlan();
   sel = null; editing = null; $('#mp-setup').open = false; $('#mp-hint').textContent = '';
   save(); toast('Wochenplan gespeichert');

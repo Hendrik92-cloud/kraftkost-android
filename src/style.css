@@ -179,6 +179,9 @@ button:disabled{opacity:.5}
 .parts .item{padding:8px 12px}
 .ai{white-space:pre-wrap;font-size:15px;background:var(--accent-soft);border-radius:var(--r-sm);padding:12px}
 
+.supprow{display:grid;gap:6px}
+.supprow .filter button[aria-pressed="true"]{background:var(--ok-soft);color:var(--ok)}
+
 /* Sonstiges */
 .done .t{text-decoration:line-through;color:var(--muted)}
 .chk{width:26px;height:26px}

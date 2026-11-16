@@ -63,7 +63,18 @@ function renderShop() {
     box.querySelectorAll('[data-srm]').forEach(b => b.onclick = () => { const x = db.shop.find(s => s.id === b.dataset.srm); if (x) { removeItem(x); save(); } });
   }
   $('#s-clear').hidden = !it.some(x => x.done);
-  renderCompare(); renderOffers();
+  renderHead(it); renderCompare(); renderOffers();
+}
+
+/** Übersicht oben: was noch fehlt und wo es am günstigsten ist. */
+function renderHead(it) {
+  const open = it.filter(x => !x.done), done = it.length - open.length;
+  const inOffer = open.filter(x => matches(x.name).length).length;
+  const cats = [...new Set(open.map(x => x.cat || 'Sonstiges'))].length;
+  $('#s-head').innerHTML = `<h3>Einkaufsliste</h3>
+    <div class="bignum"><b>${open.length}</b><span>${open.length === 1 ? 'Sache fehlt' : 'Sachen fehlen'}${cats > 1 ? ` · ${cats} Bereiche im Laden` : ''}</span></div>
+    ${it.length ? `<div class="progress"><div class="bar"><div class="fill" style="width:${it.length ? done / it.length * 100 : 0}%"></div></div><span>${done} von ${it.length} im Wagen</span></div>` : ''}
+    <div class="chips">${inOffer ? `<span class="chip">${inOffer} im Angebot</span>` : ''}${db.settings.sync ? '<span class="chip t">mit der Familie geteilt</span>' : ''}${db.mealplan?.shopping?.length ? '<span class="chip mute">aus dem Wochenplan</span>' : ''}</div>`;
 }
 
 function renderCompare() {

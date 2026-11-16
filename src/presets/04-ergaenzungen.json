@@ -1,0 +1,16 @@
+{
+  "id": "ergaenzungen-esn-2026-11-16",
+  "titel": "Erinnerungen für Ergänzungsmittel",
+  "beschreibung": "Kreatin morgens um 7 Uhr, Magnesium und Ashwagandha abends um 21 Uhr (ESN). Uhrzeiten änderst du in den Einstellungen.",
+  "art": "paket",
+  "ergaenzungen": {
+    "morgens": "07:00",
+    "abends": "21:00",
+    "erinnern": true,
+    "liste": [
+      { "name": "Kreatin (ESN)", "wann": "morgens" },
+      { "name": "Magnesium (ESN)", "wann": "abends" },
+      { "name": "Ashwagandha (ESN)", "wann": "abends" }
+    ]
+  }
+}

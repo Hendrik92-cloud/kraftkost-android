@@ -23,6 +23,7 @@
 </header>
 
 <main>
+<div class="card hero" id="presets" hidden style="margin-bottom:14px"></div>
 <div class="notice" id="nokey" hidden>Pläne und Angebote erstellst du über die Claude-App, das kostet nichts extra: Auf „Plan erstellen“ tippen, Anfrage kopieren, Antwort einfügen. Mit einem API-Schlüssel geht es direkt in der App, dazu Teller-Foto und Belege auslesen.
   <div class="actions"><button type="button" class="sm" id="nokey-ok">Verstanden</button><button type="button" class="sm ghost" data-goto="einstellungen">Schlüssel eintragen</button></div></div>
 
@@ -86,6 +87,7 @@
 <!-- ESSEN -->
 <section class="tab" id="tab-essen" hidden>
   <div class="card hero" id="m-summary"></div>
+  <div class="card" id="sp-today" hidden></div>
   <div class="card" id="m-quick" hidden></div>
   <form class="card" id="mform" autocomplete="off">
     <h3>Etwas anderes eintragen</h3>
@@ -110,7 +112,7 @@
       </div>
     </details>
     <div class="row wide">
-      <label for="m-slot">Mahlzeit<select id="m-slot"><option>Frühstück</option><option>Mittag</option><option>Abend</option><option>Snack</option></select></label>
+      <label for="m-slot">Mahlzeit<select id="m-slot"><option>Frühstück</option><option>Mittag</option><option>Nachmittag</option><option>Abend</option><option>Snack</option></select></label>
       <div class="bottom"><button class="primary" type="submit">Eintragen</button></div>
     </div>
     <label class="plain" for="m-fav"><input type="checkbox" id="m-fav">Als Gericht merken</label>
@@ -137,7 +139,7 @@
       <div><div class="lbl">Trainingstage</div><div class="filter" id="mp-train"></div></div>
       <div class="row">
         <label for="mp-start">Ab<input id="mp-start" type="date"></label>
-        <label for="mp-meals">Mahlzeiten / Tag<select id="mp-meals"><option>3</option><option selected>4</option><option>5</option></select></label>
+        <label for="mp-meals">Mahlzeiten / Tag<select id="mp-meals"><option value="3" selected>3 (Frühstück, Nachmittag, Abend)</option><option value="4">4 (dazu Nachtisch)</option><option value="5">5</option></select></label>
       </div>
       <label for="mp-effort">Aufwand<select id="mp-effort"><option>Schnell, bis 20 min</option><option selected>Normal, bis 40 min</option><option>Am Wochenende vorkochen</option></select></label>
       <label for="mp-pref">Wünsche für diese Woche<input id="mp-pref" placeholder="z. B. 2× Fisch, einmal Pizza-Abend"></label>
@@ -150,6 +152,7 @@
 
 <!-- EINKAUF -->
 <section class="tab" id="tab-einkauf" hidden>
+  <div class="card hero" id="s-head"></div>
   <form class="card" id="sform" autocomplete="off">
     <div class="inputmic">
       <label for="s-name">Auf die Liste<input id="s-name" placeholder="z. B. Magerquark, Bananen"></label>
@@ -171,7 +174,8 @@
 
 <!-- NOTIZEN -->
 <section class="tab" id="tab-notizen" hidden>
-  <form class="card" id="nform" autocomplete="off">
+  <form class="card hero" id="nform" autocomplete="off">
+    <div class="actions between"><h3>Notizen</h3><span class="small muted" id="n-sum"></span></div>
     <button type="button" class="primary big" id="n-mic">🎤 Notiz sprechen</button>
     <label for="n-text">Notiz<textarea id="n-text" rows="4" placeholder="Sprechen oder schreiben …"></textarea></label>
     <div><div class="lbl">Gehört zu</div><div class="filter" id="n-to"></div></div>
@@ -255,13 +259,26 @@
         <label for="st-prot">Eiweiß g<input id="st-prot" inputmode="numeric"></label>
         <div class="bottom"><button type="submit">Speichern</button></div>
       </div>
-      <p class="small muted">Leer lassen, dann schlägt Claude beim Wochenplan ein passendes Ziel vor.</p>
+      <label for="st-habits">Feste Gewohnheiten beim Essen<textarea id="st-habits" rows="2" placeholder="z. B. Frühstück immer Eiweiß-Shake"></textarea></label>
+      <p class="small muted">Kalorien leer lassen, dann schlägt Claude beim Wochenplan ein Ziel vor. Die Gewohnheiten berücksichtigt jeder neue Plan.</p>
     </form>
 
     <div class="card">
       <div class="actions between"><h3>Haushalt</h3><button type="button" class="sm" id="hh-add">Person dazu</button></div>
       <p class="small muted">Alle essen dasselbe. Der Anteil bestimmt die Portion und die Einkaufsmengen.</p>
       <div id="hh-list" class="stack"></div>
+    </div>
+
+    <div class="card">
+      <div class="actions between"><h3>Ergänzungen</h3><button type="button" class="sm" id="sp-add">Mittel dazu</button></div>
+      <div id="sp-list" class="stack"></div>
+      <div class="row">
+        <label for="sp-morning">Morgens um<input id="sp-morning" type="time"></label>
+        <label for="sp-evening">Abends um<input id="sp-evening" type="time"></label>
+      </div>
+      <label class="plain" for="sp-remind"><input type="checkbox" id="sp-remind">Täglich erinnern</label>
+      <div class="actions"><button type="button" id="sp-alarm">Zusätzlich als Wecker stellen</button></div>
+      <p class="hint" id="sp-hint"></p>
     </div>
 
     <div class="card">
