@@ -64,6 +64,8 @@
       <div class="actions"><button class="primary" type="submit" id="p-go">Plan erstellen</button><span class="hint" id="p-hint"></span></div>
     </form>
     <div id="p-bridge"></div>
+    <div class="actions"><button type="button" class="ghost" data-import="p-imphint">Plan aus dem Claude-Chat einfügen</button></div>
+    <p class="hint" id="p-imphint"></p>
   </details>
   <details class="card" id="basics">
     <summary>Grundlagen fürs Studio</summary>
@@ -236,6 +238,14 @@
       </details>
       <div class="actions"><button class="primary" type="submit">Speichern</button><button type="button" id="st-test">Verbindung testen</button><span class="hint" id="st-keyhint"></span></div>
     </form>
+
+    <div class="card">
+      <h3>Aus dem Claude-Chat übernehmen</h3>
+      <p class="small muted">Hat Claude dir im Chat einen Plan oder Einstellungen als Codeblock gegeben: Block kopieren, hier einfügen. Kostet kein API-Guthaben.</p>
+      <button type="button" class="primary" data-import="imp-hint">Aus Zwischenablage einfügen</button>
+      <details><summary>Einfügen klappt nicht? Hier hinein</summary><textarea id="imp-area" rows="4" placeholder="Codeblock aus dem Chat"></textarea><button type="button" class="sm" id="imp-use">Übernehmen</button></details>
+      <p class="hint" id="imp-hint"></p>
+    </div>
 
     <form class="card" id="set-goals" autocomplete="off">
       <h3>Meine Tagesziele</h3>

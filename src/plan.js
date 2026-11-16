@@ -183,7 +183,7 @@ ${bridge ? `Fasse außerdem alle Zutaten der Woche zu einer Einkaufsliste zusamm
   });
 }
 
-function applyMealPlan(r, { dates, keep, td, meals, effort, pref }) {
+export function applyMealPlan(r, { dates, keep, td, meals, effort, pref }) {
   const s = db.settings;
   const days = (r.tage || []).slice(0, 7).map((t, i) => {
     const dt = dates[i];

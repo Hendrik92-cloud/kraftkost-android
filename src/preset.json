@@ -1,0 +1,233 @@
+{
+  "id": "start-2026-12-rueckenfreundlich",
+  "art": "paket",
+  "einstellungen": {
+    "gewicht": 112,
+    "kcal": 2700,
+    "eiweiss": 180,
+    "trainingstage": ["Mo", "Mi", "Fr"]
+  },
+  "trainingsplan": {
+    "art": "trainingsplan",
+    "ziel": "Abnehmen und straffen",
+    "erfahrung": "Wiedereinsteiger",
+    "zeit": "60 min",
+    "start": "2026-12-01",
+    "notizen": "195 cm, 112 kg. Nach Bandscheiben-OP (verheilt): unteren Rücken und Rumpf aufbauen, abnehmen, kräftiger werden. Rücken neutral, anfangs keine schwere Last auf der Wirbelsäule.",
+    "name": "Starker Rücken, weniger Gewicht",
+    "wochen": 10,
+    "phasen": [
+      { "wochen": "1-2", "titel": "Eingewöhnung", "hinweis": "Nur 2 Sätze pro Übung, leichte Gewichte. Ziel ist saubere Technik und ein gutes Gefühl im Rücken." },
+      { "wochen": "3-5", "titel": "Aufbau", "hinweis": "3 Sätze pro Übung. Gewicht steigern, sobald alle Wiederholungen sauber klappen." },
+      { "wochen": "6", "titel": "Erholungswoche", "hinweis": "Bewusst leichter: etwa 15 % weniger Gewicht. Der Körper baut in dieser Woche auf." },
+      { "wochen": "7-10", "titel": "Steigerung", "hinweis": "3 Sätze, bei den Rückenübungen darf es jetzt fordernder werden. Technik bleibt wichtiger als Gewicht." }
+    ],
+    "aufwaermen": "8–10 Minuten Rad oder Crosstrainer locker, dann Katze-Kuh im Vierfüßlerstand (10×) und vor der ersten Übung ein Satz mit halbem Gewicht.",
+    "ausdauer": "Nach dem Krafttraining 15–20 Minuten Rad oder Crosstrainer in einem Tempo, bei dem du noch sprechen kannst. An freien Tagen 30–45 Minuten zügig spazieren, das schont den Rücken und hilft beim Abnehmen.",
+    "tage": [
+      {
+        "titel": "Tag A – Ganzkörper: Beine und Drücken",
+        "fokus": "Große Muskeln trainieren, Rücken stabil halten.",
+        "uebungen": [
+          {
+            "name": "Beinpresse", "saetze": 3, "wdh": "10-12",
+            "muskeln": "Oberschenkel vorne und hinten, Po",
+            "einstellen": "Rückenlehne so, dass dein unterer Rücken ganz am Polster bleibt. Schlitten so einstellen, dass die Knie am Start etwa rechtwinklig sind.",
+            "ablauf": ["Füße hüftbreit mittig auf die Platte, Fußspitzen leicht nach außen.", "Rücken und Po fest ans Polster drücken.", "Platte kontrolliert wegdrücken, Knie am Ende nicht ganz durchstrecken.", "Langsam zurück, bis die Knie etwa rechtwinklig sind, nicht tiefer."],
+            "atmung": "Beim Wegdrücken ausatmen, beim Zurückgehen einatmen.",
+            "fehler": ["Zu tief runtergehen, sodass sich der Po vom Polster abhebt und der untere Rücken rund wird.", "Knie fallen beim Drücken nach innen."],
+            "startgewicht": "So wählen, dass nach 12 Wiederholungen noch 3 gegangen wären. Lieber zu leicht anfangen.",
+            "alternative": "Beinpresse liegend oder Wandsitzen (30 Sekunden halten)."
+          },
+          {
+            "name": "Brustpresse an der Maschine", "saetze": 3, "wdh": "10-12",
+            "muskeln": "Brust, vordere Schulter, Trizeps",
+            "einstellen": "Sitz so hoch, dass die Griffe auf Höhe der Brustmitte sind.",
+            "ablauf": ["Rücken ganz an die Lehne, Schulterblätter leicht zusammen und nach unten.", "Griffe nach vorne drücken, bis die Arme fast gestreckt sind.", "Kontrolliert zurück, bis die Hände etwa neben der Brust sind."],
+            "atmung": "Beim Drücken ausatmen.",
+            "fehler": ["Schultern ziehen hoch zu den Ohren.", "Hohlkreuz machen, um mehr Gewicht zu schaffen."],
+            "startgewicht": "Nach 12 Wiederholungen sollten noch 2–3 gehen.",
+            "alternative": "Liegestütz an einer Bank oder Kurzhantel-Bankdrücken leicht."
+          },
+          {
+            "name": "Latzug zur Brust", "saetze": 3, "wdh": "10-12",
+            "muskeln": "Breiter Rückenmuskel, Bizeps, oberer Rücken",
+            "einstellen": "Beinpolster so, dass die Oberschenkel fest darunter klemmen.",
+            "ablauf": ["Stange etwas weiter als schulterbreit greifen.", "Oberkörper minimal nach hinten lehnen, Brust raus.", "Stange zur oberen Brust ziehen, Ellbogen Richtung Hüfte.", "Langsam nach oben zurück, bis die Arme gestreckt sind."],
+            "atmung": "Beim Ziehen ausatmen.",
+            "fehler": ["Mit Schwung aus dem Oberkörper ziehen.", "Stange hinter den Nacken ziehen."],
+            "startgewicht": "Nach 12 Wiederholungen sollten noch 2–3 gehen.",
+            "alternative": "Klimmzugmaschine mit Unterstützung."
+          },
+          {
+            "name": "Rückenstrecker an der 45°-Bank", "saetze": 3, "wdh": "10-15",
+            "muskeln": "Unterer Rücken, Po, Beinbeuger",
+            "einstellen": "Polster so, dass die Hüftknochen knapp darüber liegen und du dich frei aus der Hüfte beugen kannst.",
+            "ablauf": ["Arme vor der Brust kreuzen, Rücken gerade.", "Langsam aus der Hüfte nach vorne absenken, Rücken bleibt gerade.", "Mit Po und unterem Rücken hochkommen, bis der Körper eine gerade Linie bildet.", "Oben 1 Sekunde halten, nicht weiter nach hinten überstrecken."],
+            "atmung": "Beim Hochkommen ausatmen.",
+            "fehler": ["Oben ins Hohlkreuz überstrecken.", "Mit Schwung arbeiten statt langsam."],
+            "startgewicht": "Nur Körpergewicht. Erst wenn 3×15 locker gehen, eine leichte Scheibe vor die Brust nehmen.",
+            "alternative": "Rückenstrecker-Maschine sehr leicht oder Superman am Boden."
+          },
+          {
+            "name": "Vierfüßlerstand diagonal (Bird-Dog)", "saetze": 3, "wdh": "8-10",
+            "muskeln": "Tiefe Rückenmuskeln, Rumpf, Po",
+            "einstellen": "Auf einer Matte in den Vierfüßlerstand, Hände unter den Schultern, Knie unter der Hüfte.",
+            "ablauf": ["Rücken gerade, Bauch leicht anspannen.", "Rechten Arm und linkes Bein gleichzeitig strecken, bis sie eine Linie mit dem Rücken bilden.", "2 Sekunden halten, langsam zurück.", "Seite wechseln. Eine Wiederholung = beide Seiten."],
+            "atmung": "Ruhig weiteratmen, nicht die Luft anhalten.",
+            "fehler": ["Bein zu hoch heben, sodass ein Hohlkreuz entsteht.", "Becken kippt zur Seite."],
+            "startgewicht": "Ohne Gewicht. Später die Haltezeit auf 4 Sekunden verlängern.",
+            "alternative": "Nur Beine abwechselnd strecken, Hände bleiben am Boden."
+          },
+          {
+            "name": "Unterarmstütz (Sekunden)", "saetze": 3, "wdh": "20-40",
+            "muskeln": "Bauch, Rumpf, Schultern",
+            "einstellen": "Auf einer Matte, Ellbogen unter den Schultern.",
+            "ablauf": ["Auf Unterarme und Zehenspitzen stützen.", "Körper bildet eine gerade Linie von Kopf bis Fersen.", "Bauch und Po anspannen und halten. Die Zahl sind Sekunden."],
+            "atmung": "Gleichmäßig weiteratmen.",
+            "fehler": ["Hüfte hängt durch und erzeugt ein Hohlkreuz.", "Po ragt nach oben."],
+            "startgewicht": "Anfangs auf den Knien statt auf den Zehen, wenn 20 Sekunden sauber nicht gehen.",
+            "alternative": "Unterarmstütz auf den Knien."
+          }
+        ]
+      },
+      {
+        "titel": "Tag B – Ganzkörper: Hüfte und Ziehen",
+        "fokus": "Po und Rücken stärken, das entlastet die Lendenwirbelsäule.",
+        "uebungen": [
+          {
+            "name": "Beinbeuger sitzend", "saetze": 3, "wdh": "10-12",
+            "muskeln": "Oberschenkelrückseite",
+            "einstellen": "Knie auf Höhe der Drehachse des Geräts, Polster knapp über den Fersen. Oberschenkelpolster fest.",
+            "ablauf": ["Rücken an die Lehne, Griffe festhalten.", "Unterschenkel kontrolliert nach unten und hinten ziehen.", "Kurz halten, langsam zurück."],
+            "atmung": "Beim Beugen ausatmen.",
+            "fehler": ["Gewicht zurückschnellen lassen.", "Hüfte hebt vom Sitz ab."],
+            "startgewicht": "Nach 12 Wiederholungen sollten noch 2–3 gehen.",
+            "alternative": "Beinbeuger liegend."
+          },
+          {
+            "name": "Hüftheben am Boden (Glute Bridge)", "saetze": 3, "wdh": "12-15",
+            "muskeln": "Po, Oberschenkelrückseite, unterer Rücken",
+            "einstellen": "Auf dem Rücken auf einer Matte, Füße hüftbreit aufgestellt, Fersen etwa eine Handbreit vor dem Po.",
+            "ablauf": ["Bauch leicht anspannen.", "Becken anheben, bis Knie, Hüfte und Schultern eine Linie bilden.", "Oben den Po 2 Sekunden fest anspannen.", "Langsam ablegen."],
+            "atmung": "Beim Anheben ausatmen.",
+            "fehler": ["Oben ins Hohlkreuz drücken statt den Po anzuspannen.", "Mit Schwung arbeiten."],
+            "startgewicht": "Ohne Gewicht. Wenn 3×15 leicht gehen, eine Hantelscheibe aufs Becken legen.",
+            "alternative": "Hip-Thrust-Maschine leicht."
+          },
+          {
+            "name": "Rudern sitzend am Kabelzug", "saetze": 3, "wdh": "10-12",
+            "muskeln": "Mittlerer und oberer Rücken, Bizeps",
+            "einstellen": "Füße auf die Stützen, Knie leicht gebeugt. Enger Griff.",
+            "ablauf": ["Aufrecht sitzen, Rücken gerade, Brust raus.", "Griff zum Bauch ziehen, Schulterblätter zusammen.", "Kontrolliert nach vorne, bis die Arme gestreckt sind. Der Oberkörper bleibt aufrecht."],
+            "atmung": "Beim Ziehen ausatmen.",
+            "fehler": ["Mit dem Oberkörper vor und zurück schaukeln.", "Rücken beim Zurückgehen rund machen."],
+            "startgewicht": "Nach 12 Wiederholungen sollten noch 2–3 gehen.",
+            "alternative": "Rudermaschine mit Brustpolster."
+          },
+          {
+            "name": "Schulterdrücken an der Maschine", "saetze": 3, "wdh": "10-12",
+            "muskeln": "Schultern, Trizeps",
+            "einstellen": "Sitz so, dass die Griffe auf Schulterhöhe sind. Rücken ganz an die Lehne.",
+            "ablauf": ["Rücken und Kopf an die Lehne, Bauch anspannen.", "Griffe nach oben drücken, bis die Arme fast gestreckt sind.", "Langsam zurück auf Schulterhöhe."],
+            "atmung": "Beim Drücken ausatmen.",
+            "fehler": ["Hohlkreuz, der untere Rücken löst sich von der Lehne.", "Zu schweres Gewicht mit Schwung."],
+            "startgewicht": "Leicht anfangen, nach 12 Wiederholungen sollten noch 3 gehen.",
+            "alternative": "Kurzhantel-Schulterdrücken sitzend mit Lehne."
+          },
+          {
+            "name": "Rückenstrecker-Maschine", "saetze": 3, "wdh": "12-15",
+            "muskeln": "Unterer Rücken",
+            "einstellen": "Rückenpolster auf Höhe der Schulterblätter, Fußstütze so, dass die Hüfte an der Drehachse liegt.",
+            "ablauf": ["Aufrecht sitzen, Bauch leicht anspannen.", "Langsam nach hinten drücken, bis der Oberkörper aufrecht bis leicht hinter der Senkrechten ist.", "Kontrolliert nach vorne zurück, nicht ganz zusammensacken."],
+            "atmung": "Beim Zurückdrücken ausatmen.",
+            "fehler": ["Mit zu viel Gewicht und Schwung arbeiten.", "Weit nach hinten überstrecken."],
+            "startgewicht": "Bewusst sehr leicht. Diese Übung langsam über Wochen steigern.",
+            "alternative": "Rückenstrecker an der 45°-Bank."
+          },
+          {
+            "name": "Kabelzug seitlich halten (Pallof Press)", "saetze": 3, "wdh": "8-10",
+            "muskeln": "Tiefe Bauchmuskeln, Rumpfstabilität",
+            "einstellen": "Seilzug auf Brusthöhe, Griff mit beiden Händen. Seitlich zum Gerät stellen, einen großen Schritt weg.",
+            "ablauf": ["Füße schulterbreit, Knie leicht gebeugt, Griff vor der Brust.", "Arme gerade nach vorne drücken, ohne dass sich der Oberkörper zum Gerät dreht.", "2 Sekunden halten, zurück zur Brust.", "Alle Wiederholungen, dann Seite wechseln."],
+            "atmung": "Beim Wegdrücken ausatmen.",
+            "fehler": ["Oberkörper dreht sich mit dem Zug mit.", "Zu viel Gewicht."],
+            "startgewicht": "Leicht, sodass du ganz ruhig stehen bleibst.",
+            "alternative": "Seitstütz auf den Knien, 20 Sekunden pro Seite."
+          }
+        ]
+      },
+      {
+        "titel": "Tag C – Ganzkörper: Kräftigen",
+        "fokus": "Alle großen Muskeln, dazu Bauch und Rücken.",
+        "uebungen": [
+          {
+            "name": "Kniebeuge zur Bank mit Kurzhantel", "saetze": 3, "wdh": "10-12",
+            "muskeln": "Oberschenkel, Po, Rumpf",
+            "einstellen": "Eine Bank hinter dich stellen. Eine leichte Kurzhantel senkrecht vor der Brust halten.",
+            "ablauf": ["Füße schulterbreit, Fußspitzen leicht nach außen.", "Po nach hinten schieben und langsam absetzen, bis du die Bank kurz berührst.", "Oberkörper bleibt aufrecht, Rücken gerade.", "Aus den Fersen wieder hochdrücken."],
+            "atmung": "Beim Hochkommen ausatmen.",
+            "fehler": ["Rücken wird rund, der Oberkörper kippt weit nach vorne.", "Auf die Bank plumpsen lassen."],
+            "startgewicht": "Erst ohne Hantel üben. Dann leicht, etwa 8–10 kg.",
+            "alternative": "Beinpresse."
+          },
+          {
+            "name": "Rudern an der Maschine mit Brustpolster", "saetze": 3, "wdh": "10-12",
+            "muskeln": "Oberer und mittlerer Rücken, hintere Schulter",
+            "einstellen": "Brustpolster so, dass du die Griffe mit gestreckten Armen gerade erreichst.",
+            "ablauf": ["Brust ans Polster, Blick nach vorne.", "Griffe zum Körper ziehen, Schulterblätter zusammen.", "Kurz halten, langsam zurück."],
+            "atmung": "Beim Ziehen ausatmen.",
+            "fehler": ["Brust löst sich vom Polster.", "Schultern ziehen hoch."],
+            "startgewicht": "Nach 12 Wiederholungen sollten noch 2–3 gehen.",
+            "alternative": "Rudern sitzend am Kabelzug."
+          },
+          {
+            "name": "Schrägbankdrücken mit Kurzhanteln", "saetze": 3, "wdh": "10-12",
+            "muskeln": "Obere Brust, Schultern, Trizeps",
+            "einstellen": "Bank auf etwa 30 Grad stellen.",
+            "ablauf": ["Mit den Hanteln auf den Oberschenkeln hinsetzen, dann nach hinten legen und die Hanteln neben die Brust bringen.", "Füße fest am Boden, Rücken an der Bank.", "Hanteln nach oben drücken, bis die Arme fast gestreckt sind.", "Langsam zurück neben die Brust."],
+            "atmung": "Beim Drücken ausatmen.",
+            "fehler": ["Hohlkreuz, der Po hebt von der Bank ab.", "Hanteln fallen unkontrolliert runter."],
+            "startgewicht": "Leicht, etwa 8–12 kg pro Hand, nach 12 Wiederholungen sollten noch 2–3 gehen.",
+            "alternative": "Brustpresse an der Maschine."
+          },
+          {
+            "name": "Beinstrecker", "saetze": 3, "wdh": "12-15",
+            "muskeln": "Oberschenkel vorne",
+            "einstellen": "Knie auf Höhe der Drehachse, Polster knapp über den Füßen.",
+            "ablauf": ["Rücken an die Lehne, Griffe festhalten.", "Beine strecken, oben kurz halten.", "Langsam ablassen."],
+            "atmung": "Beim Strecken ausatmen.",
+            "fehler": ["Gewicht runterfallen lassen.", "Po hebt vom Sitz ab."],
+            "startgewicht": "Nach 15 Wiederholungen sollten noch 2–3 gehen.",
+            "alternative": "Beinpresse mit weniger Gewicht."
+          },
+          {
+            "name": "Rückenstrecker an der 45°-Bank", "saetze": 3, "wdh": "10-15",
+            "muskeln": "Unterer Rücken, Po, Beinbeuger",
+            "einstellen": "Polster so, dass die Hüftknochen knapp darüber liegen und du dich frei aus der Hüfte beugen kannst.",
+            "ablauf": ["Arme vor der Brust kreuzen, Rücken gerade.", "Langsam aus der Hüfte nach vorne absenken, Rücken bleibt gerade.", "Mit Po und unterem Rücken hochkommen, bis der Körper eine gerade Linie bildet.", "Oben 1 Sekunde halten, nicht weiter nach hinten überstrecken."],
+            "atmung": "Beim Hochkommen ausatmen.",
+            "fehler": ["Oben ins Hohlkreuz überstrecken.", "Mit Schwung arbeiten statt langsam."],
+            "startgewicht": "Nur Körpergewicht. Erst wenn 3×15 locker gehen, eine leichte Scheibe vor die Brust nehmen.",
+            "alternative": "Rückenstrecker-Maschine sehr leicht oder Superman am Boden."
+          },
+          {
+            "name": "Toter Käfer (Dead Bug)", "saetze": 3, "wdh": "8-10",
+            "muskeln": "Tiefe Bauchmuskeln, Rumpf",
+            "einstellen": "Auf dem Rücken auf einer Matte, Arme senkrecht nach oben, Knie rechtwinklig in der Luft.",
+            "ablauf": ["Unteren Rücken sanft in die Matte drücken und dort lassen.", "Rechten Arm nach hinten und linkes Bein nach vorne langsam absenken.", "Zurück zur Mitte, Seite wechseln. Eine Wiederholung = beide Seiten."],
+            "atmung": "Beim Absenken ausatmen.",
+            "fehler": ["Der untere Rücken hebt von der Matte ab.", "Zu schnell arbeiten."],
+            "startgewicht": "Ohne Gewicht. Wenn es zu schwer ist, nur die Beine bewegen.",
+            "alternative": "Nur die Fersen abwechselnd zum Boden tippen."
+          }
+        ]
+      }
+    ],
+    "ernaehrung": [
+      "Zu jeder Mahlzeit eine Eiweißquelle: Quark, Eier, Hähnchen, Fisch, Hülsenfrüchte. So bleiben die Muskeln beim Abnehmen erhalten.",
+      "Die halbe Portion Gemüse oder Salat, dann wirst du satt bei weniger Kalorien.",
+      "Getränke ohne Zucker und an Trainingstagen etwas mehr Kohlenhydrate rund ums Training, zum Beispiel Reis, Kartoffeln oder Haferflocken."
+    ]
+  }
+}

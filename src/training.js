@@ -72,7 +72,10 @@ function renderPlan() {
   <div class="progress"><div class="bar"><div class="fill" style="width:${nAll ? nDone / nAll * 100 : 0}%"></div></div><span>${nDone} von ${nAll} erledigt</span></div>
   <div>${d.exercises.map((x, i) => exHTML(x, i, nextTarget(x, deload))).join('')}</div>
   ${plan.days.length > 1 ? `<div class="actions"><span class="small muted">Anderer Tag:</span><div class="filter">${plan.days.map((x, i) => `<button type="button" data-pday="${i}" aria-pressed="${i === idx}">${esc(x.title.split(/[–-]/)[0].trim() || 'Tag ' + (i + 1))}</button>`).join('')}</div></div>` : ''}
-  ${plan.warmup || plan.cardio || (plan.tips || []).length ? `<details><summary>Aufwärmen, Ausdauer, Ernährung</summary><div class="stack small" style="gap:6px">${plan.warmup ? `<p><b>Aufwärmen:</b> ${esc(plan.warmup)}</p>` : ''}${plan.cardio ? `<p><b>Ausdauer:</b> ${esc(plan.cardio)}</p>` : ''}${(plan.tips || []).map(t => `<p>• ${esc(t)}</p>`).join('')}</div></details>` : ''}`;
+  ${plan.warmup || plan.cardio || (plan.tips || []).length ? `<details><summary>Aufwärmen, Ausdauer, Ernährung</summary><div class="stack small" style="gap:6px">${plan.warmup ? `<p><b>Aufwärmen:</b> ${esc(plan.warmup)}</p>` : ''}${plan.cardio ? `<p><b>Ausdauer:</b> ${esc(plan.cardio)}</p>` : ''}${(plan.tips || []).map(t => `<p>• ${esc(t)}</p>`).join('')}</div></details>` : ''}
+  <details><summary>Plan-Start ändern</summary><label for="plan-start">Erster Trainingstag<input id="plan-start" type="date" value="${esc(plan.start || today())}"></label></details>`;
+  const ps = v.querySelector('#plan-start');
+  if (ps) ps.onchange = () => { if (ps.value) { plan.start = ps.value; save(); toast('Start auf ' + fmtDay(ps.value) + ' gesetzt'); } };
   v.querySelectorAll('[data-pday]').forEach(b => b.onclick = () => { planSel = +b.dataset.pday; renderPlan(); });
   // Ein Tipp: Ziel von heute übernehmen. Beim ersten Mal (noch kein Gewicht) direkt anpassen lassen.
   v.querySelectorAll('[data-done]').forEach(b => b.onclick = () => {
@@ -256,7 +259,7 @@ Form: {"art":"trainingsplan","name":"kurzer Planname","wochen":10,"phasen":[{"wo
 const str = v => String(v || '');
 const arr = v => (Array.isArray(v) ? v.map(String).filter(Boolean) : []);
 /** Übernimmt einen Plan aus der Claude-Antwort. Gibt false zurück, wenn es keiner ist. */
-function applyPlan(r, meta) {
+export function applyPlan(r, meta) {
   const daysArr = (r.tage || []).map(t => ({
     title: str(t.titel), focus: str(t.fokus),
     exercises: (t.uebungen || []).map(u => ({

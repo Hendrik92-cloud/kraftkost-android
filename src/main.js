@@ -14,6 +14,9 @@ import { initPlan } from './plan.js';
 import { initEinkauf } from './einkauf.js';
 import { initMehr, showMore } from './mehr.js';
 import { initNotes } from './notes.js';
+import { initImporter, importAny } from './importer.js';
+import preset from './preset.json';
+import { toast } from './util.js';
 import { startSync, connected, pull } from './sync.js';
 
 const TABS = ['training', 'essen', 'plan', 'einkauf', 'notizen', 'mehr'];
@@ -43,7 +46,7 @@ function setDay(d) {
 
 async function boot() {
   await load();
-  initTraining(); initEssen(); initPlan(); initEinkauf(); initNotes(); initMehr();
+  initTraining(); initEssen(); initPlan(); initEinkauf(); initNotes(); initMehr(); initImporter();
   onChange(renderAll);
   startSync(() => S.tab === 'einkauf' || S.tab === 'plan');
   $('#gear').onclick = () => { tap(); showTab('mehr'); };
@@ -70,6 +73,12 @@ async function boot() {
   }
 
   $('#nokey-ok').onclick = () => { db.settings.keyNoticeSeen = true; save(); };
+  // Einmalig mitgeliefertes Startpaket übernehmen (Plan und Ziele aus dem Chat).
+  if (preset?.id && db.settings.presetApplied !== preset.id) {
+    const what = importAny(preset);
+    db.settings.presetApplied = preset.id; save();
+    if (what) setTimeout(() => toast('Neu eingetragen: ' + what), 600);
+  }
   showTab('training', false);
   setDay(today());
 }
