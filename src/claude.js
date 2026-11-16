@@ -95,6 +95,10 @@ function buildBody(prompt, { smart = false, images = [], maxTokens = 2000, syste
   ];
   const body = { model: smart ? db.settings.modelSmart : db.settings.modelQuick, max_tokens: maxTokens, messages: [{ role: 'user', content }] };
   if (system) body.system = system;
+  // Die 5.5-Modelle denken sonst erst lange still nach. Das kostet Zeit und Tokens und
+  // frisst bei langen Plänen das Antwortlimit auf. Für unsere Aufgaben reicht direktes Schreiben.
+  if (/sonnet-5/.test(body.model)) { body.thinking = { type: 'between_tools' }; body.output_config = { effort: 'medium' }; }
+  else if (/haiku-5/.test(body.model)) body.thinking = { type: 'disabled' };
   return body;
 }
 
@@ -109,7 +113,17 @@ export async function ask(prompt, opts = {}) {
 
   if (!webSearch) {
     const lock = await wake();
-    try { return await callStream(body, onText); } finally { lock?.release?.().catch?.(() => {}); }
+    try {
+      try { return await callStream(body, onText); }
+      catch (e) {
+        // Falls die API die Denk-Einstellung nicht annimmt: einmal ohne versuchen.
+        if (e.code === 'api' && /thinking|effort|output_config/i.test(e.message) && (body.thinking || body.output_config)) {
+          delete body.thinking; delete body.output_config;
+          return await callStream(body, onText);
+        }
+        throw e;
+      }
+    } finally { lock?.release?.().catch?.(() => {}); }
   }
 
   body.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 8 }];

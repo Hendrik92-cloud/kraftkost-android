@@ -184,7 +184,7 @@ ${bridge ? `Fasse außerdem alle Zutaten der Woche zu einer Einkaufsliste zusamm
     try {
       let r;
       try {
-        r = await askJSON(prompt, { smart: true, maxTokens: 16000, background: { kind: 'wochenplan', ctx }, onText: (t, b) => tk.set(streamInfo(b, (t.match(/"datum"\s*:/g) || []).length, 7, 'Tag')) });
+        r = await askJSON(prompt, { smart: true, maxTokens: 32000, background: { kind: 'wochenplan', ctx }, onText: (t, b) => tk.set(streamInfo(b, (t.match(/"datum"\s*:/g) || []).length, 7, 'Tag')) });
       } finally { tk.stop(); }
       if (!applyMealPlan(r, ctx)) throw new Error();
     } catch (err) { $('#mp-hint').textContent = err.code ? aiMsg(err) : 'Der Plan kam unvollständig an. Versuch es nochmal.'; }

@@ -255,7 +255,7 @@ Form: {"art":"trainingsplan","name":"kurzer Planname","wochen":10,"phasen":[{"wo
     try {
       let r;
       try {
-        r = await askJSON(prompt, { smart: true, maxTokens: 12000, background: { kind: 'trainingsplan', ctx: meta }, onText: (t, b) => tk.set(streamInfo(b, (t.match(/"ablauf"\s*:/g) || []).length, null, 'Übungen erklärt')) });
+        r = await askJSON(prompt, { smart: true, maxTokens: 32000, background: { kind: 'trainingsplan', ctx: meta }, onText: (t, b) => tk.set(streamInfo(b, (t.match(/"ablauf"\s*:/g) || []).length, null, 'Übungen erklärt')) });
       } finally { tk.stop(); }
       if (!applyPlan(r, meta)) throw new Error();
     } catch (err) { $('#p-hint').textContent = err.code ? aiMsg(err) : 'Der Plan kam unvollständig an. Versuch es nochmal.'; }
