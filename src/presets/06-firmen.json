@@ -1,0 +1,10 @@
+{
+  "id": "firmen-2026-11-16",
+  "titel": "Firmen für Notizen: comotus und aprexa",
+  "beschreibung": "Persönlich: Notizen gehen per Mail an hendrik.kuhnert@comotus.com bzw. hendrik.kuhnert@aprexa.de.",
+  "art": "paket",
+  "firmen": [
+    { "name": "comotus", "email": "hendrik.kuhnert@comotus.com" },
+    { "name": "aprexa", "email": "hendrik.kuhnert@aprexa.de" }
+  ]
+}

@@ -6,6 +6,7 @@ import { applyPlan } from './training.js';
 import { applyMealPlan } from './plan.js';
 import { scheduleTraining } from './native.js';
 import { applySupps } from './supps.js';
+import { syncNow } from './sync.js';
 
 function applySettings(e) {
   if (!e) return [];
@@ -75,6 +76,19 @@ export function importAny(j) {
     if (applyDishes(j.gerichte)) parts.push('Gerichte');
     if (j.ergaenzungen && applySupps(j.ergaenzungen)) parts.push('Ergänzungen');
     if (j.einkauf_entfernen) removeOldShopping(j.einkauf_entfernen);
+    if (j.firmen) {
+      const C = db.settings.companies; let n = 0;
+      for (const f of j.firmen) { if (!f.name || C.some(c => c.name.toLowerCase() === f.name.toLowerCase())) continue; C.push({ id: uid(), name: f.name, email: f.email || '' }); n++; }
+      if (n) parts.push('Firmen');
+    }
+    if (j.sync?.url && j.sync?.key && j.sync?.household) {
+      // Eigene Einträge mit hochladen; ein vorhandener gemeinsamer Plan geht vor, wenn hier keiner neu übernommen wurde.
+      db.settings.sync = { url: j.sync.url, key: j.sync.key, household: j.sync.household };
+      db.shop.forEach(x => { x.dirty = true; x.updated = x.updated || Date.now(); });
+      if (db.mealplan && !db.mealplan.dirty) db.mealplan.updatedAt = 0;
+      parts.push('Familien-Abgleich');
+      setTimeout(() => syncNow(), 300);
+    }
     if (j.trainingsplan && applyPlan(j.trainingsplan, metaFrom(j.trainingsplan))) parts.push('Trainingsplan');
     if (j.wochenplan && applyMealPlan(j.wochenplan, mealCtx(j.wochenplan))) parts.push('Wochenplan');
   } else if (isTraining(j)) { if (applyPlan(j, metaFrom(j))) parts.push('Trainingsplan'); }

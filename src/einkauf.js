@@ -158,7 +158,7 @@ export function initEinkauf() {
     try {
       const t = await listen('Zum Beispiel: Milch, Eier und Bananen'); if (!t) return;
       const n = addShopItems(splitSpoken(t).map(name => ({ name })));
-      toast(n ? `${n} Sachen auf die Liste gesetzt` : 'Steht schon alles drauf');
+      toast(n ? `${n} ${n === 1 ? "Sache" : "Sachen"} auf die Liste gesetzt` : 'Steht schon alles drauf');
     } catch (e) { toast(e.message); }
   };
   $('#s-clear').onclick = () => { live().filter(x => x.done).forEach(removeItem); save(); };

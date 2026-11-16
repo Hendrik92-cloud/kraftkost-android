@@ -63,7 +63,7 @@ function renderPlan() {
   const chips = [
     wk < 1 ? `<span class="chip t">Start ${fmtDay(plan.start)}</span>` : total ? `<span class="chip t">${wk > total ? 'Zyklus fertig' : `Woche ${wk}/${total}`}</span>` : '',
     ph && wk >= 1 ? `<span class="chip ${deload ? 'mute' : 't'}">${esc(ph.title)}</span>` : '',
-    `<span class="chip ${isTrain ? 'ok' : 'mute'}">${isTrain ? 'Trainingstag' : 'Ruhetag'}</span>`
+    wk >= 1 ? `<span class="chip ${isTrain ? 'ok' : 'mute'}">${isTrain ? 'Trainingstag' : 'Ruhetag'}</span>` : ''
   ].join('');
   v.innerHTML = `<div class="actions between"><h3>${S.day === today() ? 'Heute' : fmtDay(S.day)} · ${esc(plan.name || 'Dein Plan')}</h3></div>
   <div><h4>${esc(d.title)}</h4><div class="chips">${chips}</div>${d.focus ? `<p class="small muted" style="margin-top:6px">${esc(d.focus)}</p>` : ''}</div>

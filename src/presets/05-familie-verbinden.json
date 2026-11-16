@@ -1,0 +1,11 @@
+{
+  "id": "familie-supabase-2026-11-16",
+  "titel": "Mit der Familie verbinden",
+  "beschreibung": "Einkaufsliste und Wochenplan werden automatisch zwischen deinem Handy und dem deiner Frau abgeglichen. Auf beiden Handys auswählen.",
+  "art": "paket",
+  "sync": {
+    "url": "https://bnmhfwbvddeflbjpfgcl.supabase.co",
+    "key": "sb_publishable_qJM6S3chpVQ6B8Dh3RGgog_jue1qwWd",
+    "household": "6emiqxj32jwnb868cwk92b6k"
+  }
+}

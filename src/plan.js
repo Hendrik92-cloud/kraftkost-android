@@ -134,7 +134,7 @@ async function buildShopping(P) {
   const fresh = P.shopping?.length && !P.shopStale;
   if (fresh || !hasKey()) {
     const n = addShopItems(fresh ? P.shopping : localMerge(lines));
-    toast(n ? `${n} Sachen auf die Einkaufsliste gesetzt` : 'Alles steht schon auf der Liste');
+    toast(n ? `${n} ${n === 1 ? 'Sache' : 'Sachen'} auf die Einkaufsliste gesetzt` : 'Alles steht schon auf der Liste');
     return;
   }
   await busy($('#mp-shop'), hint, 'Claude fasst die Zutaten zusammen …', async () => {
@@ -150,7 +150,7 @@ Form: {"einkauf":[{"name":"Haferflocken","menge":"1 kg","kategorie":"Brot & Troc
     } catch { items = localMerge(lines); }
     const n = addShopItems(items);
     hint.textContent = '';
-    toast(n ? `${n} Sachen auf die Einkaufsliste gesetzt` : 'Alles steht schon auf der Liste');
+    toast(n ? `${n} ${n === 1 ? 'Sache' : 'Sachen'} auf die Einkaufsliste gesetzt` : 'Alles steht schon auf der Liste');
   });
 }
 
