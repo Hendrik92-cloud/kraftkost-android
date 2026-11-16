@@ -4,7 +4,7 @@ import { $, $$, esc, de, num, uid, today, addDays, fmtDay, toast, WD, wdOf } fro
 import { askJSON, aiMsg, hasKey, registerJob, pendingJob } from './claude.js';
 import { showBridge } from './bridge.js';
 import { logMeal } from './essen.js';
-import { addShopItems, CATS, live, removeItem, guessCat, tripFor, LASTING } from './einkauf.js';
+import { addShopItems, CATS, live, removeItem, guessCat, tripFor, LASTING, offersFresh, fetchOffers } from './einkauf.js';
 import { sumAmounts, nameKey } from './shopmath.js';
 import { scheduleTraining } from './native.js';
 
@@ -17,14 +17,14 @@ const mapMeal = m => ({
   id: uid(), slot: String(m.slot || 'Snack'), name: String(m.name || ''),
   kcal: num(m.kcal) || 0, protein: num(m.protein) || 0, carbs: num(m.kohlenhydrate) || 0, fat: num(m.fett) || 0,
   time: String(m.zeit || ''), steps: String(m.zubereitung || ''), kidTip: String(m.kind_tipp || ''),
-  ingredients: (m.zutaten || []).map(z => ({ name: String(z.name || ''), amount: String(z.menge || '') })).filter(z => z.name),
+  ingredients: (m.zutaten || []).map(z => ({ name: String(z.name || ''), amount: String(z.menge || ''), offer: String(z.laden || '') })).filter(z => z.name),
   solo: !!m.nur_ich, locked: false
 });
 const factorStr = f => String(f).replace('.', ',');
 
 function offersText() {
   const O = db.offers?.items || []; if (!O.length) return '';
-  return O.slice(0, 80).map(o => `${o.store}: ${o.name}${o.unit ? ' (' + o.unit + ')' : ''} ${de(o.price, 2)} €`).join('\n');
+  return O.slice(0, 60).map(o => `${o.store}: ${o.name}${o.unit ? ' (' + o.unit + ')' : ''} ${de(o.price, 2)} €`).join('\n');
 }
 
 function renderHouse() {
@@ -55,7 +55,7 @@ function mealHTML(m, i) {
     <div class="actions between"><span class="tag">${esc(m.slot)}${m.locked ? ' · fixiert' : ''}</span><span class="num kcal">${de(m.kcal)} kcal</span></div>
     <div class="t">${esc(m.name)}</div>
     <div class="s">Deine Portion: E ${de(m.protein)} · K ${de(m.carbs)} · F ${de(m.fat)} g${m.time ? ' · ' + esc(m.time) : ''}</div>
-    ${m.ingredients.length || m.steps ? `<details><summary>${m.solo ? 'Zutaten für dich' : 'Zutaten für alle'} und Zubereitung</summary><ul>${m.ingredients.map(z => `<li>${esc(z.amount ? z.amount + ' ' : '')}${esc(z.name)}</li>`).join('')}</ul>${m.steps ? `<p class="small" style="margin-top:6px">${esc(m.steps)}</p>` : ''}${m.kidTip ? `<p class="small muted" style="margin-top:6px">Fürs Kind: ${esc(m.kidTip)}</p>` : ''}</details>` : ''}
+    ${m.ingredients.length || m.steps ? `<details><summary>${m.solo ? 'Zutaten für dich' : 'Zutaten für alle'} und Zubereitung</summary><ul>${m.ingredients.map(z => `<li>${esc(z.amount ? z.amount + ' ' : '')}${esc(z.name)}${z.offer ? ` <span class="chip">Angebot ${esc(z.offer)}</span>` : ''}</li>`).join('')}</ul>${m.steps ? `<p class="small" style="margin-top:6px">${esc(m.steps)}</p>` : ''}${m.kidTip ? `<p class="small muted" style="margin-top:6px">Fürs Kind: ${esc(m.kidTip)}</p>` : ''}</details>` : ''}
     <div class="actions"><button type="button" class="sm primary" data-eat="${i}">✓ Gegessen</button><button type="button" class="sm" data-swap="${i}">Tauschen</button><button type="button" class="sm ghost" data-edit="${i}">Ändern</button><button type="button" class="sm ghost" data-lock="${i}" aria-label="${m.locked ? 'Fixierung lösen' : 'Für nächste Planung fixieren'}">${m.locked ? '📌 Fixiert' : '📌'}</button></div>
   </div>`;
 }
@@ -161,10 +161,25 @@ async function createPlan(e) {
   const dates = [...Array(7)].map((_, i) => addDays(start, i));
   const locked = (db.mealplan?.days || []).flatMap(d => d.meals.filter(m => m.locked).map(m => ({ ...m, date: d.date })));
   const keep = locked.filter(m => dates.includes(m.date));
-  const offers = $('#mp-offers').checked ? offersText() : '';
+  const useOffers = $('#mp-offers').checked;
   const liked = db.dishes.map(d => d.name).slice(0, 15);
   const ctx = { dates, keep, td, meals, effort, pref };
   const bridge = !hasKey();
+  // Erst die Angebote, dann der Plan: Angebote dieser Woche bei Bedarf zuerst holen.
+  if (useOffers && !bridge && !offersFresh()) {
+    if (!db.settings.plz) toast('Für Angebote fehlt deine Postleitzahl (Zahnrad → Einstellungen). Ich plane erstmal ohne.');
+    else {
+      let ok = true;
+      await busy($('#mp-go'), null, '', async () => {
+        const tk = ticker($('#mp-hint'), 'Schritt 1 von 2: Claude sucht die Angebote von Aldi und Kaufland …');
+        try { const n = await fetchOffers(); if (!n) toast('Keine Angebote gefunden, ich plane ohne.'); }
+        catch (err) { ok = err.code !== 'no_key'; toast('Angebote gerade nicht abrufbar, ich plane ohne.'); }
+        finally { tk.stop(); }
+      });
+      if (!ok) return;
+    }
+  }
+  const offers = useOffers ? offersText() : '';
   const prompt = `Erstelle einen Familien-Essensplan für 7 Tage auf Deutsch. Alle essen dieselben Gerichte, nur die Portionen unterscheiden sich.
 Haushalt: ${householdText()}.
 Mahlzeiten pro Tag: ${slotsFor(meals).join(', ')}. Abends wird einmal für alle gekocht, alle essen dasselbe; keine getrennten Gerichte für einzelne Personen. Nachmittag ist eine schnelle Kleinigkeit ohne Kochen, gern auch der Rest vom Vorabend.${s.habits ? '\nFeste Gewohnheiten: ' + s.habits + ' Diese Mahlzeit jeden Tag genau so einplanen und mitzählen.' : ''}
@@ -174,10 +189,10 @@ Tage:
 ${dates.map(dt => `${dt} (${WD[wdOf(dt)]}): ${td.includes(wdOf(dt)) ? 'Trainingstag' : 'Ruhetag'}`).join('\n')}
 Aufwand: ${effort}. Wünsche: ${pref || 'keine'}.${liked.length ? ' Gerichte, die gut ankommen: ' + liked.join(', ') + '.' : ''}
 Kindgerecht: nicht scharf, Gemüse gern versteckt oder als Rohkost dazu; bei Bedarf ein kurzer Tipp in "kind_tipp". Mag das Kind etwas nicht, isst es ein Brot; dafür keine Extra-Gerichte planen.
-Reste und Vorkochen sinnvoll nutzen, damit der Einkauf klein bleibt. Einfache Zutaten vom Discounter.${offers ? '\nBevorzuge Zutaten aus diesen aktuellen Angeboten:\n' + offers : ''}${keep.length ? '\nDiese Mahlzeiten stehen fest und bleiben unverändert, plane drumherum: ' + keep.map(m => `${m.date} ${m.slot}: ${m.name}`).join('; ') : ''}
+Reste und Vorkochen sinnvoll nutzen, damit der Einkauf klein bleibt. Wir kaufen bei Aldi und Kaufland.${offers ? '\nPlane andersherum: Schau zuerst, was diese Woche im Angebot ist, und zaubere daraus richtig leckere Gerichte. Die Hauptzutaten der Abendessen (Fleisch, Fisch, Gemüse) sollen möglichst aus den Angeboten kommen, Grundzutaten wie Reis, Nudeln oder Gewürze dürfen normal gekauft werden. Gib bei jeder Zutat aus dem Angebot "laden" an ("Aldi" oder "Kaufland").\nAngebote dieser Woche:\n' + offers : ''}${keep.length ? '\nDiese Mahlzeiten stehen fest und bleiben unverändert, plane drumherum: ' + keep.map(m => `${m.date} ${m.slot}: ${m.name}`).join('; ') : ''}
 Mahlzeiten, die nur der Erwachsene mit Portion 1 isst (zum Beispiel Frühstück oder Mittag zum Mitnehmen mit Zutaten, die andere nicht mögen), bekommen "nur_ich": true. Dann gelten die Zutatenmengen nur für ihn.
 Nährwerte je Mahlzeit für die Portion 1. Zutatenmengen sonst für den ganzen Haushalt (${factorStr(Math.round(familyFactor() * 10) / 10)} Portionen).
-${bridge ? `Fasse außerdem alle Zutaten der Woche zu einer Einkaufsliste zusammen (gleiche addieren, auf Packungsgrößen runden, ohne Salz, Pfeffer, Gewürze, Öl, Mehl, Zucker) mit Kategorie aus: ${CATS.join(', ')}.\n` : ''}Form: {"art":"wochenplan","ziel_kcal":2500,"tage":[{"datum":"YYYY-MM-DD","mahlzeiten":[{"slot":"Frühstück","name":"…","kcal":550,"protein":35,"kohlenhydrate":60,"fett":15,"zeit":"10 min","zutaten":[{"name":"Haferflocken","menge":"200 g"}],"zubereitung":"2 bis 3 Sätze","kind_tipp":""}]}]${bridge ? ',"einkauf":[{"name":"Haferflocken","menge":"1 kg","kategorie":"Brot & Trockenware"}]' : ''}}`;
+${bridge ? `Fasse außerdem alle Zutaten der Woche zu einer Einkaufsliste zusammen (gleiche addieren, auf Packungsgrößen runden, ohne Salz, Pfeffer, Gewürze, Öl, Mehl, Zucker) mit Kategorie aus: ${CATS.join(', ')}.\n` : ''}Form: {"art":"wochenplan","ziel_kcal":2500,"tage":[{"datum":"YYYY-MM-DD","mahlzeiten":[{"slot":"Frühstück","name":"…","kcal":550,"protein":35,"kohlenhydrate":60,"fett":15,"zeit":"10 min","zutaten":[{"name":"Haferflocken","menge":"200 g","laden":""}],"zubereitung":"2 bis 3 Sätze","kind_tipp":""}]}]${bridge ? ',"einkauf":[{"name":"Haferflocken","menge":"1 kg","kategorie":"Brot & Trockenware"}]' : ''}}`;
   if (bridge) { showBridge($('#mp-bridge'), prompt, r => applyMealPlan(r, ctx)); return; }
   await busy($('#mp-go'), null, '', async () => {
     const tk = ticker($('#mp-hint'), 'Claude plant eure Woche …');

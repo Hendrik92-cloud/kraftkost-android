@@ -7,7 +7,7 @@ import { showBridge } from './bridge.js';
 import { listen } from './native.js';
 
 export const CATS = ['Obst & Gemüse', 'Fleisch & Fisch', 'Kühlregal', 'Brot & Trockenware', 'Konserven & Vorrat', 'Tiefkühl', 'Getränke', 'Drogerie & Haushalt', 'Sonstiges'];
-const STORES = ['Aldi', 'Lidl', 'Penny', 'Netto'];
+const STORES = ['Aldi', 'Kaufland'];
 let storeFilter = 'Alle';
 
 /** Fügt Artikel hinzu, ohne Doppelte (gleicher Name im selben Einkauf). Gibt die Anzahl neuer Einträge zurück. */
@@ -128,7 +128,7 @@ function renderOffers() {
   const list = $('#o-list');
   if (!O || !(O.items || []).length) {
     $('#o-meta').textContent = db.settings.plz ? `Für PLZ ${db.settings.plz}.` : 'Trag unter Zahnrad → Einstellungen deine Postleitzahl ein, die Angebote sind regional.';
-    list.innerHTML = '<div class="empty">Noch keine Angebote. „Angebote suchen“ lässt Claude die aktuellen Prospekte von Aldi, Lidl, Penny und Netto im Internet durchsuchen, passend zu deiner Liste.</div>';
+    list.innerHTML = '<div class="empty">Noch keine Angebote. „Angebote suchen“ lässt Claude die aktuellen Prospekte von Aldi und Kaufland im Internet durchsuchen. Beim Wochenplan passiert das automatisch.</div>';
     return;
   }
   const age = daysUntil(O.updatedAt) * -1;
@@ -139,31 +139,49 @@ function renderOffers() {
   list.querySelectorAll('[data-addo]').forEach(b => b.onclick = () => { const o = xs[+b.dataset.addo]; toast(addShopItems([{ name: o.name, trip: curTrip() }]) ? 'Auf die Liste gesetzt' : 'Steht schon auf der Liste'); });
 }
 
+/** Sind die Angebote von dieser Prospektwoche (ab Montag)? */
+export function offersFresh() {
+  const O = db.offers; if (!O?.items?.length || O.plz !== db.settings.plz) return false;
+  const monday = addDays(today(), -((wdOf(today()) + 7) % 7));
+  return O.updatedAt >= monday;
+}
+
+function offersPrompt(plz) {
+  const wanted = [...new Set(live().filter(x => !x.done).map(x => x.name))].slice(0, 25);
+  return `Suche im Internet die aktuell gültigen Lebensmittel-Angebote dieser Woche (heute ist ${fmtDay(today())} ${today().slice(0, 4)}) bei Aldi und Kaufland für die Postleitzahl ${plz}. Kläre, ob dort Aldi Nord oder Aldi Süd zuständig ist, und nimm den Kaufland in der Nähe.
+Wir planen unser Essen nach den Angeboten. Liste deshalb möglichst viele Angebote, aus denen man kochen kann: Fleisch und Wurst, Fisch, Milchprodukte, Käse, Eier, Obst, Gemüse, Kartoffeln, Reis, Nudeln, Brot, Tiefkühlgemüse.${wanted.length ? ' Achte außerdem auf diese Sachen von unserer Einkaufsliste: ' + wanted.join(', ') + '.' : ''}
+Keine Non-Food-Artikel, keine Süßigkeiten, kein Alkohol, keine Bohnen.
+Nimm nur Angebote auf, die du in einer Quelle für diese Woche gefunden hast, und erfinde keine Preise. Bis zu 25 pro Laden.
+Form: {"art":"angebote","angebote":[{"laden":"Kaufland","name":"Rinderhackfleisch","einheit":"500 g","preis":3.99,"normalpreis":5.49,"gueltig":"Mo 16.11. – Sa 21.11."}],"hinweis":"kurz, z. B. Aldi Nord, Woche 47"}`;
+}
+
+function applyOffers(r, plz) {
+  const items = (r.angebote || []).map(o => ({
+    store: String(o.laden || '').replace(/marken-?discount/i, '').trim() || 'Unbekannt', name: String(o.name || ''), unit: String(o.einheit || ''),
+    price: Number(String(o.preis).replace(',', '.')) || 0, oldPrice: Number(String(o.normalpreis).replace(',', '.')) || null, valid: String(o.gueltig || '')
+  })).filter(o => o.name && o.price > 0);
+  if (!items.length) return 0;
+  db.offers = { items, note: String(r.hinweis || ''), plz, updatedAt: today() };
+  save();
+  return items.length;
+}
+
+/** Angebote von Aldi und Kaufland suchen (für den Wochenplan). Gibt die Anzahl zurück. */
+export async function fetchOffers() {
+  const plz = db.settings.plz; if (!plz) return 0;
+  return applyOffers(await askJSON(offersPrompt(plz), { webSearch: true, maxTokens: 10000 }), plz);
+}
+
 async function searchOffers() {
   const plz = db.settings.plz;
   if (!plz) { toast('Trag zuerst deine Postleitzahl unter Zahnrad → Einstellungen ein.'); return; }
-  const wanted = [...new Set(live().filter(x => !x.done).map(x => x.name).concat((db.mealplan?.days || []).flatMap(d => d.meals.flatMap(m => m.ingredients.map(z => z.name)))))].slice(0, 40);
-  const prompt = `Suche im Internet die aktuell gültigen Lebensmittel-Angebote dieser Woche (heute ist ${fmtDay(today())} ${today().slice(0, 4)}) bei Aldi, Lidl, Penny und Netto Marken-Discount für die Postleitzahl ${plz}. Kläre, ob dort Aldi Nord oder Aldi Süd zuständig ist.
-${wanted.length ? 'Achte besonders auf diese Produkte von der Einkaufsliste und aus dem Essensplan: ' + wanted.join(', ') + '.' : ''}
-Außerdem gesunde Grundnahrungsmittel: Fleisch, Fisch, Milchprodukte, Quark, Eier, Obst, Gemüse, Haferflocken, Reis, Nudeln, Hülsenfrüchte. Keine Non-Food-Artikel, keine Süßigkeiten, kein Alkohol.
-Nimm nur Angebote auf, die du in einer Quelle für diese Woche gefunden hast, und erfinde keine Preise. Höchstens 15 pro Laden.
-Form: {"art":"angebote","angebote":[{"laden":"Lidl","name":"Hähnchenbrustfilet","einheit":"1 kg","preis":6.99,"normalpreis":9.99,"gueltig":"Mo 16.11. – Sa 21.11."}],"hinweis":"kurz, z. B. Aldi Nord, Woche 47"}`;
-  const apply = r => {
-    const items = (r.angebote || []).map(o => ({
-      store: String(o.laden || '').replace(/marken-?discount/i, '').trim() || 'Unbekannt', name: String(o.name || ''), unit: String(o.einheit || ''),
-      price: Number(String(o.preis).replace(',', '.')) || 0, oldPrice: Number(String(o.normalpreis).replace(',', '.')) || null, valid: String(o.gueltig || '')
-    })).filter(o => o.name && o.price > 0);
-    if (!items.length) return false;
-    db.offers = { items, note: String(r.hinweis || ''), plz, updatedAt: today() };
-    save(); toast(`${items.length} Angebote übernommen`);
-    return true;
-  };
-  if (!hasKey()) { showBridge($('#o-bridge'), prompt, apply); return; }
+  const apply = r => { const n = applyOffers(r, plz); if (n) toast(`${n} Angebote übernommen`); return !!n; };
+  if (!hasKey()) { showBridge($('#o-bridge'), offersPrompt(plz), apply); return; }
   const btn = $('#o-search');
   await busy(btn, null, '', async () => {
     btn.textContent = 'Suche läuft …';
-    $('#o-meta').textContent = 'Claude durchsucht die aktuellen Prospekte. Das dauert ein bis zwei Minuten …';
-    try { if (!apply(await askJSON(prompt, { webSearch: true, maxTokens: 8000 }))) $('#o-meta').textContent = 'Keine Angebote gefunden. Versuch es später nochmal.'; }
+    $('#o-meta').textContent = 'Claude durchsucht die Prospekte von Aldi und Kaufland. Das dauert ein bis zwei Minuten …';
+    try { if (!apply(await askJSON(offersPrompt(plz), { webSearch: true, maxTokens: 10000 }))) $('#o-meta').textContent = 'Keine Angebote gefunden. Versuch es später nochmal.'; }
     catch (e) { $('#o-meta').textContent = aiMsg(e); }
     finally { btn.textContent = 'Angebote suchen'; }
   });

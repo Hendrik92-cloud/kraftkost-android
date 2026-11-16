@@ -83,7 +83,9 @@ async function installApk() {
   }
 }
 
+const showReload = () => { const b = $('#up-reload'); if (b) b.hidden = !localStorage.getItem(PENDING); };
 function banner(text, label, fn) {
+  showReload();
   const b = $('#upd'); if (!b) return;
   b.innerHTML = `<span>${esc(text)}</span><button type="button" class="primary small">${esc(label)}</button>`;
   b.hidden = false;
@@ -149,5 +151,7 @@ export async function startUpdates() {
 export function initUpdateCard() {
   setInfo(native ? `Version ${BUILD}` : 'Updates gibt es nur in der App.');
   $('#up-check').hidden = !native;
+  $('#up-reload').onclick = () => applyPending();
+  showReload();
   $('#up-check').onclick = () => checkUpdate({ force: true });
 }
