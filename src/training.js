@@ -59,19 +59,20 @@ function renderPlan() {
   const wk = planWeek(plan), total = plan.weeks || 0;
   const ph = planPhase(plan, Math.max(1, wk)), deload = wk >= 1 && isDeload(ph);
   const isTrain = db.settings.trainDays.includes(wdOf(S.day));
-  const head = wk < 1
-    ? `<p class="small">Startet am ${fmtDay(plan.start)}. Bis dahin kannst du dir die Übungen schon ansehen.</p>`
-    : total ? `<div class="meter"><div class="lbl2"><span>${wk > total ? 'Zyklus abgeschlossen' : `Woche ${wk} von ${total}`}${ph ? ` · ${esc(ph.title)}` : ''}</span><span>${isTrain ? 'Trainingstag' : 'Ruhetag'}</span></div>
-      <div class="bar"><div class="fill p" style="width:${Math.min(100, wk / total * 100)}%"></div></div>
-      ${ph?.note ? `<p class="small muted">${esc(ph.note)}</p>` : ''}
-      ${wk > total ? '<p class="small">Zeit für einen neuen Plan. Unten erstellen, deine bisherigen Gewichte fließen ein.</p>' : ''}</div>` : '';
-  v.innerHTML = `<div class="actions between"><h3>${esc(plan.name || 'Dein Plan')}</h3><span class="small muted">${esc(plan.goal)} · ${plan.daysPerWeek}× pro Woche</span></div>
-  ${head}
-  <div class="filter">${plan.days.map((x, i) => `<button type="button" data-pday="${i}" aria-pressed="${i === idx}">${esc(x.title.split(/[–-]/)[0].trim() || 'Tag ' + (i + 1))}</button>`).join('')}</div>
-  <div><h4>${esc(d.title)}</h4>${d.focus ? `<p class="small muted">${esc(d.focus)}</p>` : ''}</div>
+  const nDone = d.exercises.filter(x => done.has(x.name.toLowerCase())).length, nAll = d.exercises.length;
+  const chips = [
+    wk < 1 ? `<span class="chip t">Start ${fmtDay(plan.start)}</span>` : total ? `<span class="chip t">${wk > total ? 'Zyklus fertig' : `Woche ${wk}/${total}`}</span>` : '',
+    ph && wk >= 1 ? `<span class="chip ${deload ? 'mute' : 't'}">${esc(ph.title)}</span>` : '',
+    `<span class="chip ${isTrain ? 'ok' : 'mute'}">${isTrain ? 'Trainingstag' : 'Ruhetag'}</span>`
+  ].join('');
+  v.innerHTML = `<div class="actions between"><h3>${S.day === today() ? 'Heute' : fmtDay(S.day)} · ${esc(plan.name || 'Dein Plan')}</h3></div>
+  <div><h4>${esc(d.title)}</h4><div class="chips">${chips}</div>${d.focus ? `<p class="small muted" style="margin-top:6px">${esc(d.focus)}</p>` : ''}</div>
+  ${ph?.note && wk >= 1 ? `<p class="small muted">${esc(ph.note)}</p>` : ''}
+  ${wk > total && total ? '<p class="small">Zeit für einen neuen Plan. Unten erstellen, deine bisherigen Gewichte fließen ein.</p>' : ''}
+  <div class="progress"><div class="bar"><div class="fill" style="width:${nAll ? nDone / nAll * 100 : 0}%"></div></div><span>${nDone} von ${nAll} erledigt</span></div>
   <div>${d.exercises.map((x, i) => exHTML(x, i, nextTarget(x, deload))).join('')}</div>
-  ${plan.warmup || plan.cardio || (plan.tips || []).length ? `<details><summary>Aufwärmen, Ausdauer, Ernährung</summary><div class="stack small" style="gap:6px">${plan.warmup ? `<p><b>Aufwärmen:</b> ${esc(plan.warmup)}</p>` : ''}${plan.cardio ? `<p><b>Ausdauer:</b> ${esc(plan.cardio)}</p>` : ''}${(plan.tips || []).map(t => `<p>• ${esc(t)}</p>`).join('')}</div></details>` : ''}
-  <p class="small muted">Schaffst du in allen Sätzen das obere Ende der Wiederholungen, schlägt die App beim nächsten Mal mehr Gewicht vor.</p>`;
+  ${plan.days.length > 1 ? `<div class="actions"><span class="small muted">Anderer Tag:</span><div class="filter">${plan.days.map((x, i) => `<button type="button" data-pday="${i}" aria-pressed="${i === idx}">${esc(x.title.split(/[–-]/)[0].trim() || 'Tag ' + (i + 1))}</button>`).join('')}</div></div>` : ''}
+  ${plan.warmup || plan.cardio || (plan.tips || []).length ? `<details><summary>Aufwärmen, Ausdauer, Ernährung</summary><div class="stack small" style="gap:6px">${plan.warmup ? `<p><b>Aufwärmen:</b> ${esc(plan.warmup)}</p>` : ''}${plan.cardio ? `<p><b>Ausdauer:</b> ${esc(plan.cardio)}</p>` : ''}${(plan.tips || []).map(t => `<p>• ${esc(t)}</p>`).join('')}</div></details>` : ''}`;
   v.querySelectorAll('[data-pday]').forEach(b => b.onclick = () => { planSel = +b.dataset.pday; renderPlan(); });
   // Ein Tipp: Ziel von heute übernehmen. Beim ersten Mal (noch kein Gewicht) direkt anpassen lassen.
   v.querySelectorAll('[data-done]').forEach(b => b.onclick = () => {
@@ -149,14 +150,12 @@ function renderRest() {
   if (!restTotal) restTotal = restSeconds();
   const left = restInt ? restLeft : restTotal;
   const mm = Math.floor(left / 60), ss = String(left % 60).padStart(2, '0');
-  box.innerHTML = `<div class="actions between"><h3>Satzpause</h3><span class="small muted">${restInt ? 'läuft' : 'bereit'}</span></div>
-    <div class="timer" id="rest-t">${mm}:${ss}</div>
-    <div class="actions" style="justify-content:center">
-      <button type="button" class="sm" id="rest-minus">−15 s</button>
-      <button type="button" class="primary" id="rest-go">${restInt ? 'Stopp' : 'Start'}</button>
-      <button type="button" class="sm" id="rest-plus">+15 s</button>
-      <button type="button" class="sm ghost" id="rest-phone">Handy-Timer</button>
-    </div>`;
+  box.classList.toggle('running', !!restInt);
+  box.innerHTML = `<span class="lbl3">Pause</span><span class="time" id="rest-t">${mm}:${ss}</span><span class="sp"></span>
+    <button type="button" class="sm" id="rest-minus" aria-label="15 Sekunden weniger">−15</button>
+    <button type="button" class="sm" id="rest-plus" aria-label="15 Sekunden mehr">+15</button>
+    <button type="button" class="sm ${restInt ? '' : 'primary'}" id="rest-go">${restInt ? 'Stopp' : 'Start'}</button>
+    <button type="button" class="sm ghost" id="rest-phone" aria-label="Timer in der Uhr-App stellen">⏰</button>`;
   $('#rest-minus').onclick = () => { restTotal = Math.max(15, restTotal - 15); if (restInt) restLeft = Math.max(1, restLeft - 15); renderRest(); };
   $('#rest-plus').onclick = () => { restTotal += 15; if (restInt) restLeft += 15; renderRest(); };
   $('#rest-go').onclick = () => (restInt ? stopRest() : startRest());
@@ -184,10 +183,14 @@ function renderLog() {
   const sets = day.reduce((s, w) => s + (w.sets || 0), 0);
   const days = new Set(W.filter(w => w.date >= addDays(S.day, -6) && w.date <= S.day).map(w => w.date)).size;
   const goal = db.plan?.daysPerWeek;
-  $('#w-stats').innerHTML = `<div class="stat"><b>${de(sets)}</b><span>Sätze</span></div><div class="stat"><b>${de(vol)}</b><span>Volumen kg</span></div><div class="stat"><b>${days}${goal ? ' / ' + goal : ''}</b><span>Tage, 7 T.</span></div>`;
-  $('#w-list').innerHTML = day.length
-    ? '<div class="list">' + day.map(w => `<div class="item"><div class="main"><div class="t">${esc(w.ex)}</div><div class="s">${setStr(w)}</div></div><button type="button" class="del" data-wdel="${w.id}">Entfernen</button></div>`).join('') + '</div>'
-    : '<div class="empty">Für diesen Tag ist noch nichts eingetragen.</div>';
+  $('#w-stats').innerHTML = `<div class="stat"><b>${de(sets)}</b><span>Sätze heute</span></div><div class="stat"><b>${de(vol)}</b><span>kg bewegt</span></div><div class="stat"><b>${days}${goal ? '/' + goal : ''}</b><span>Trainings, 7 Tage</span></div>`;
+  // Übungen aus dem Plan stehen schon in der Hauptkarte; hier nur die übrigen.
+  const inPlan = new Set((db.plan?.days || []).flatMap(d => d.exercises.map(x => x.name.toLowerCase())));
+  const extra = db.plan ? day.filter(w => !inPlan.has(w.ex.toLowerCase())) : day;
+  $('#w-list').innerHTML = extra.length
+    ? `<div class="list"><div class="group-h"><span>${db.plan ? 'Weitere Übungen' : 'Eingetragen'}</span><span>${extra.length}</span></div>` + extra.map(w => `<div class="item"><div class="main"><div class="t">${esc(w.ex)}</div><div class="s">${setStr(w)}</div></div><button type="button" class="del" data-wdel="${w.id}">Entfernen</button></div>`).join('') + '</div>'
+    : db.plan ? '' : '<div class="empty">Für diesen Tag ist noch nichts eingetragen. Lass dir unten einen Plan erstellen, dann reicht ein Tipp pro Übung.</div>';
+  $('#w-stats').hidden = !day.length;
   $('#w-list').querySelectorAll('[data-wdel]').forEach(b => b.onclick = () => { if (!armed(b)) return; db.workouts = db.workouts.filter(w => w.id !== b.dataset.wdel); save(); });
   exHint();
 }

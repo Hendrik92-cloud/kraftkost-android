@@ -26,8 +26,14 @@ function meter(label, val, goal, unit, cls) {
 function renderMeals() {
   const { M, kcal, protein, carbs, fat } = dayTotals(); M.sort((a, b) => a.at - b.at);
   const g = db.settings;
-  $('#m-summary').innerHTML = meter('Kalorien', kcal, g.kcalGoal, 'kcal', '') + meter('Eiweiß', protein, g.proteinGoal, 'g', 'p') +
-    `<p class="small muted">Kohlenhydrate ${de(carbs)} g · Fett ${de(fat)} g${!g.kcalGoal ? ' · Ziele legst du unter Mehr → Einstellungen fest.' : ''}</p>`;
+  const left = g.kcalGoal ? g.kcalGoal - kcal : null;
+  const big = left == null
+    ? `<div class="bignum"><b>${de(kcal)}</b><span>kcal gegessen</span></div>`
+    : left >= 0 ? `<div class="bignum"><b>${de(left)}</b><span>kcal übrig von ${de(g.kcalGoal)}</span></div>`
+    : `<div class="bignum"><b class="kcal">${de(-left)}</b><span>kcal über dem Ziel</span></div>`;
+  $('#m-summary').innerHTML = `<h3>${S.day === today() ? 'Heute' : fmtDay(S.day)}</h3>` + big +
+    meter('Kalorien', kcal, g.kcalGoal, 'kcal', '') + meter('Eiweiß', protein, g.proteinGoal, 'g', 'p') +
+    `<p class="small muted">Kohlenhydrate ${de(carbs)} g · Fett ${de(fat)} g${!g.kcalGoal ? ' · Tagesziele legst du über das Zahnrad fest.' : ''}</p>`;
   $('#m-list').innerHTML = M.length ? '<div class="list">' + SLOTS.map(sl => {
     const xs = M.filter(m => m.slot === sl); if (!xs.length) return '';
     return `<div class="group-h"><span>${sl}</span><span class="num">${de(xs.reduce((s, m) => s + (m.kcal || 0), 0))} kcal</span></div>` +
@@ -69,6 +75,12 @@ function fillFromParts() {
   if (!parts.length) return;
   const s = k => Math.round(parts.reduce((a, p) => a + (p[k] || 0), 0));
   $('#m-kcal').value = s('kcal'); $('#m-p').value = s('protein'); $('#m-c').value = s('carbs'); $('#m-f').value = s('fat');
+  macSum();
+}
+/** Zusammenfassung im eingeklappten „Nährwerte“-Feld. */
+function macSum() {
+  const k = num($('#m-kcal').value);
+  $('#m-macsum').textContent = k != null ? `Nährwerte: ${de(k)} kcal · ${de(num($('#m-p').value))} g Eiweiß` : 'Nährwerte (optional)';
 }
 const mapParts = arr => (Array.isArray(arr) ? arr : []).map(p => ({ name: String(p.name || ''), amount: String(p.menge || ''), kcal: num(p.kcal) || 0, protein: num(p.protein) || 0, carbs: num(p.kohlenhydrate) || 0, fat: num(p.fett) || 0 })).filter(p => p.name);
 
@@ -116,7 +128,7 @@ async function barcodeFlow() {
 function fillMeal(d) {
   $('#m-name').value = d.name; $('#m-kcal').value = d.kcal != null ? Math.round(d.kcal) : '';
   $('#m-p').value = Math.round(d.protein || 0); $('#m-c').value = Math.round(d.carbs || 0); $('#m-f').value = Math.round(d.fat || 0);
-  parts = (d.parts || []).slice(); renderParts();
+  parts = (d.parts || []).slice(); renderParts(); macSum();
   $('#m-hint').textContent = 'Übernommen. Passe die Werte an, wenn die Portion anders war.';
   $('#mform').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -132,7 +144,7 @@ function renderDishes() {
 
 function resetForm() {
   ['#m-name', '#m-kcal', '#m-p', '#m-c', '#m-f'].forEach(i => ($(i).value = ''));
-  $('#m-hint').textContent = ''; $('#m-fav').checked = false; $('#m-bcbox').innerHTML = ''; parts = []; renderParts();
+  $('#m-hint').textContent = ''; $('#m-fav').checked = false; $('#m-bcbox').innerHTML = ''; parts = []; renderParts(); macSum();
 }
 const guessSlot = () => { const h = new Date().getHours(); return h < 10 ? 'Frühstück' : h < 15 ? 'Mittag' : h < 21 ? 'Abend' : 'Snack'; };
 
@@ -158,6 +170,8 @@ Trainingsziel: ${db.plan?.goal || 'nicht angegeben'}. Heute trainiert: ${trained
 
 export function initEssen() {
   $('#m-slot').value = guessSlot();
+  macSum();
+  ['#m-kcal', '#m-p'].forEach(i => $(i).addEventListener('input', macSum));
   $('#m-est').onclick = () => { const t = $('#m-name').value.trim(); if (!t) { $('#m-name').focus(); return; } estimate({ text: t }); };
   $('#m-photo').onclick = async () => {
     try { const img = await takePhoto(); if (img) estimate({ text: $('#m-name').value.trim(), image: img }); }

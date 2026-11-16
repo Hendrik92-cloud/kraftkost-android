@@ -10,7 +10,7 @@
 <body>
 <div class="wrap">
 <header class="top">
-  <div class="brand">Kraft<span>kost</span></div>
+  <div class="brand"><b>Kraft<span>kost</span></b><small id="todaydate"></small></div>
   <div class="right">
     <div class="daynav" id="daynav">
       <button class="ghost icon" id="prevday" aria-label="Vorheriger Tag">‹</button>
@@ -28,11 +28,14 @@
 
 <!-- TRAINING -->
 <section class="tab" id="tab-training">
-  <h2>Training</h2>
-  <div class="card" id="plan-view" hidden></div>
-  <div class="card" id="rest" hidden></div>
-  <form class="card" id="wform" autocomplete="off">
-    <div class="actions between"><h3>Übung eintragen</h3><button type="button" class="sm mic" id="w-mic" aria-label="Übung einsprechen">🎤 Sprechen</button></div>
+  <div class="card hero" id="plan-view" hidden></div>
+  <div class="restbar" id="rest" hidden></div>
+  <div class="stats" id="w-stats"></div>
+  <div id="w-list"></div>
+  <details class="card" id="wbox">
+  <summary>Andere Übung eintragen</summary>
+  <form class="stack" id="wform" autocomplete="off">
+    <button type="button" class="mic block" id="w-mic" aria-label="Übung einsprechen">🎤 Einsprechen, z. B. „Bankdrücken 3 mal 10 mit 60 Kilo“</button>
     <label for="w-ex">Übung<input id="w-ex" list="exlist" placeholder="z. B. Bankdrücken" required></label>
     <datalist id="exlist"></datalist>
     <p class="hint" id="w-hint"></p>
@@ -41,10 +44,9 @@
       <label for="w-reps">Wdh.<input id="w-reps" type="number" inputmode="numeric" min="1" value="10"></label>
       <label for="w-kg">Gewicht kg<input id="w-kg" inputmode="decimal" placeholder="0"></label>
     </div>
-    <div class="actions"><button class="primary" type="submit">Eintragen</button></div>
+    <button class="primary block" type="submit">Eintragen</button>
   </form>
-  <div class="stats" id="w-stats"></div>
-  <div id="w-list"></div>
+  </details>
   <details class="card" id="plan-setup">
     <summary id="plan-sum">Trainingsplan erstellen lassen</summary>
     <form id="pform" class="stack" autocomplete="off">
@@ -81,11 +83,10 @@
 
 <!-- ESSEN -->
 <section class="tab" id="tab-essen" hidden>
-  <h2>Essen</h2>
-  <div class="card" id="m-summary"></div>
+  <div class="card hero" id="m-summary"></div>
   <div class="card" id="m-quick" hidden></div>
   <form class="card" id="mform" autocomplete="off">
-    <h3>Mahlzeit erfassen</h3>
+    <h3>Etwas anderes eintragen</h3>
     <div class="inputmic">
       <label for="m-name">Was gab es?<input id="m-name" placeholder="z. B. 2 Brötchen mit Käse, Kaffee" required></label>
       <button type="button" class="mic icon" id="m-mic" aria-label="Mahlzeit einsprechen">🎤</button>
@@ -98,12 +99,14 @@
     <p class="hint" id="m-hint"></p>
     <div id="m-bcbox"></div>
     <div id="m-parts"></div>
-    <div class="row">
-      <label for="m-kcal">kcal<input id="m-kcal" inputmode="decimal"></label>
-      <label for="m-p">Eiweiß g<input id="m-p" inputmode="decimal"></label>
-      <label for="m-c">Kohlenh. g<input id="m-c" inputmode="decimal"></label>
-      <label for="m-f">Fett g<input id="m-f" inputmode="decimal"></label>
-    </div>
+    <details id="m-macros"><summary id="m-macsum">Nährwerte</summary>
+      <div class="row">
+        <label for="m-kcal">kcal<input id="m-kcal" inputmode="decimal"></label>
+        <label for="m-p">Eiweiß g<input id="m-p" inputmode="decimal"></label>
+        <label for="m-c">Kohlenh. g<input id="m-c" inputmode="decimal"></label>
+        <label for="m-f">Fett g<input id="m-f" inputmode="decimal"></label>
+      </div>
+    </details>
     <div class="row wide">
       <label for="m-slot">Mahlzeit<select id="m-slot"><option>Frühstück</option><option>Mittag</option><option>Abend</option><option>Snack</option></select></label>
       <div class="bottom"><button class="primary" type="submit">Eintragen</button></div>
@@ -123,9 +126,8 @@
 
 <!-- WOCHENPLAN -->
 <section class="tab" id="tab-plan" hidden>
-  <h2>Wochenplan</h2>
+  <div id="mp-view" class="stack"></div>
   <div class="card" id="mp-house"></div>
-  <div id="mp-view"></div>
   <details class="card" id="mp-setup">
     <summary id="mp-sum">Wochenplan erstellen lassen</summary>
     <form id="mpform" class="stack" autocomplete="off">
@@ -146,7 +148,6 @@
 
 <!-- EINKAUF -->
 <section class="tab" id="tab-einkauf" hidden>
-  <h2>Einkauf</h2>
   <form class="card" id="sform" autocomplete="off">
     <div class="inputmic">
       <label for="s-name">Auf die Liste<input id="s-name" placeholder="z. B. Magerquark, Bananen"></label>
@@ -168,7 +169,6 @@
 
 <!-- NOTIZEN -->
 <section class="tab" id="tab-notizen" hidden>
-  <h2>Notizen</h2>
   <form class="card" id="nform" autocomplete="off">
     <button type="button" class="primary big" id="n-mic">🎤 Notiz sprechen</button>
     <label for="n-text">Notiz<textarea id="n-text" rows="4" placeholder="Sprechen oder schreiben …"></textarea></label>
@@ -190,7 +190,6 @@
   </div>
 
   <div id="more-gewicht" class="stack">
-    <h2>Gewicht</h2>
     <form class="card" id="kform" autocomplete="off">
       <div class="row">
         <label for="k-kg">Gewicht kg<input id="k-kg" inputmode="decimal" required></label>
@@ -204,7 +203,6 @@
   </div>
 
   <div id="more-belege" class="stack" hidden>
-    <h2>Belege</h2>
     <button type="button" class="primary big" id="r-photo">Beleg fotografieren</button>
     <div id="r-draft"></div>
     <div class="stats" id="r-stats"></div>
@@ -223,7 +221,6 @@
   </div>
 
   <div id="more-einstellungen" class="stack" hidden>
-    <h2>Einstellungen</h2>
     <form class="card" id="set-key" autocomplete="off">
       <h3>Claude</h3>
       <label for="st-key">API-Schlüssel<input id="st-key" type="password" placeholder="sk-ant-…" autocomplete="off"></label>

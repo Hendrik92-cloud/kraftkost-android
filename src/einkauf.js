@@ -90,7 +90,7 @@ function renderOffers() {
   $$('[data-of]').forEach(b => b.onclick = () => { storeFilter = b.dataset.of; renderOffers(); });
   const list = $('#o-list');
   if (!O || !(O.items || []).length) {
-    $('#o-meta').textContent = db.settings.plz ? `Für PLZ ${db.settings.plz}.` : 'Trag unter Mehr → Einstellungen deine Postleitzahl ein, die Angebote sind regional.';
+    $('#o-meta').textContent = db.settings.plz ? `Für PLZ ${db.settings.plz}.` : 'Trag unter Zahnrad → Einstellungen deine Postleitzahl ein, die Angebote sind regional.';
     list.innerHTML = '<div class="empty">Noch keine Angebote. „Angebote suchen“ lässt Claude die aktuellen Prospekte von Aldi, Lidl, Penny und Netto im Internet durchsuchen, passend zu deiner Liste.</div>';
     return;
   }
@@ -104,7 +104,7 @@ function renderOffers() {
 
 async function searchOffers() {
   const plz = db.settings.plz;
-  if (!plz) { toast('Trag zuerst deine Postleitzahl unter Mehr → Einstellungen ein.'); return; }
+  if (!plz) { toast('Trag zuerst deine Postleitzahl unter Zahnrad → Einstellungen ein.'); return; }
   const wanted = [...new Set(live().filter(x => !x.done).map(x => x.name).concat((db.mealplan?.days || []).flatMap(d => d.meals.flatMap(m => m.ingredients.map(z => z.name)))))].slice(0, 40);
   const prompt = `Suche im Internet die aktuell gültigen Lebensmittel-Angebote dieser Woche (heute ist ${fmtDay(today())} ${today().slice(0, 4)}) bei Aldi, Lidl, Penny und Netto Marken-Discount für die Postleitzahl ${plz}. Kläre, ob dort Aldi Nord oder Aldi Süd zuständig ist.
 ${wanted.length ? 'Achte besonders auf diese Produkte von der Einkaufsliste und aus dem Essensplan: ' + wanted.join(', ') + '.' : ''}

@@ -25,7 +25,7 @@ async function call(body) {
   try { data = await res.json(); } catch { /* leer */ }
   if (!res.ok) {
     const m = data?.error?.message || '';
-    if (res.status === 401) throw new AIError('auth', 'Der API-Schlüssel stimmt nicht. Prüf ihn unter Mehr → Einstellungen.');
+    if (res.status === 401) throw new AIError('auth', 'Der API-Schlüssel stimmt nicht. Prüf ihn unter Zahnrad → Einstellungen.');
     if (res.status === 429) throw new AIError('rate', 'Zu viele Anfragen. Versuch es in einer Minute nochmal.');
     if (/credit|balance|billing/i.test(m)) throw new AIError('credit', 'Dein API-Guthaben ist aufgebraucht. Lade es in der Anthropic Console auf.');
     if (res.status === 404 || /model/i.test(m)) throw new AIError('model', 'Das eingestellte Modell gibt es nicht. Prüf den Modellnamen in den Einstellungen.');
@@ -40,7 +40,7 @@ async function call(body) {
  * smart: größeres Modell für Pläne und Fotos.
  */
 export async function ask(prompt, { smart = false, images = [], maxTokens = 2000, webSearch = false, system } = {}) {
-  if (!hasKey()) throw new AIError('no_key', 'Für diese Funktion braucht die App deinen API-Schlüssel. Trag ihn unter Mehr → Einstellungen ein.');
+  if (!hasKey()) throw new AIError('no_key', 'Für diese Funktion braucht die App deinen API-Schlüssel. Trag ihn unter Zahnrad → Einstellungen ein.');
   const content = [
     ...images.map(data => ({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data } })),
     { type: 'text', text: prompt }

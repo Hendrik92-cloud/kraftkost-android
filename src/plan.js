@@ -55,7 +55,7 @@ function mealHTML(m, i) {
     <div class="t">${esc(m.name)}</div>
     <div class="s">Deine Portion: E ${de(m.protein)} · K ${de(m.carbs)} · F ${de(m.fat)} g${m.time ? ' · ' + esc(m.time) : ''}</div>
     ${m.ingredients.length || m.steps ? `<details><summary>Zutaten für alle und Zubereitung</summary><ul>${m.ingredients.map(z => `<li>${esc(z.amount ? z.amount + ' ' : '')}${esc(z.name)}</li>`).join('')}</ul>${m.steps ? `<p class="small" style="margin-top:6px">${esc(m.steps)}</p>` : ''}${m.kidTip ? `<p class="small muted" style="margin-top:6px">Fürs Kind: ${esc(m.kidTip)}</p>` : ''}</details>` : ''}
-    <div class="actions"><button type="button" class="sm" data-eat="${i}">Gegessen</button><button type="button" class="sm" data-swap="${i}">Tauschen</button><button type="button" class="sm ghost" data-edit="${i}">Bearbeiten</button><button type="button" class="sm ghost" data-lock="${i}">${m.locked ? 'Lösen' : 'Fixieren'}</button></div>
+    <div class="actions"><button type="button" class="sm primary" data-eat="${i}">✓ Gegessen</button><button type="button" class="sm" data-swap="${i}">Tauschen</button><button type="button" class="sm ghost" data-edit="${i}">Ändern</button><button type="button" class="sm ghost" data-lock="${i}" aria-label="${m.locked ? 'Fixierung lösen' : 'Für nächste Planung fixieren'}">${m.locked ? '📌 Fixiert' : '📌'}</button></div>
   </div>`;
 }
 
@@ -75,7 +75,8 @@ function renderPlanView() {
   const past = P.days[P.days.length - 1].date < today();
   v.innerHTML = `<div class="card">
     <p class="small muted">${fmtDay(P.days[0].date)} bis ${fmtDay(P.days[P.days.length - 1].date)}${past ? ' · abgelaufen, Zeit für einen neuen Plan' : ''}</p>
-    <div class="filter">${P.days.map((x, i) => `<button type="button" data-mpd="${i}" aria-pressed="${i === idx}" aria-label="${fmtDay(x.date)}${x.training ? ', Trainingstag' : ''}">${WD[wdOf(x.date)]}${x.training ? ' ●' : ''}</button>`).join('')}</div>
+    <div class="days">${P.days.map((x, i) => `<button type="button" data-mpd="${i}" class="${x.date === today() ? 'today' : ''}" aria-pressed="${i === idx}" aria-label="${fmtDay(x.date)}${x.training ? ', Trainingstag' : ''}"><small>${WD[wdOf(x.date)]}</small>${Number(x.date.slice(8))}${x.training ? '<i></i>' : '<small>&nbsp;</small>'}</button>`).join('')}</div>
+    <p class="small muted">● = Trainingstag, an dem es etwas mehr Kohlenhydrate gibt.</p>
     <div class="meter"><div class="lbl2"><span>${fmtDay(d.date)} · ${d.training ? 'Trainingstag' : 'Ruhetag'}</span><span class="num">${de(sum('kcal'))}${target ? ' / ' + de(target) : ''} kcal · ${de(sum('protein'))} g E</span></div>
     <div class="bar"><div class="fill" style="width:${target ? Math.min(100, sum('kcal') / target * 100) : 0}%"></div></div></div>
   </div>

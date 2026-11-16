@@ -1,3 +1,8 @@
+import '@fontsource/barlow/latin-400.css';
+import '@fontsource/barlow/latin-500.css';
+import '@fontsource/barlow/latin-600.css';
+import '@fontsource/barlow-condensed/latin-600.css';
+import '@fontsource/barlow-condensed/latin-700.css';
 import { App } from '@capacitor/app';
 import { db, load, onChange, flush, save } from './store.js';
 import { S, renderAll } from './app.js';
@@ -29,6 +34,7 @@ function showTab(t, push = true) {
 function setDay(d) {
   S.day = d; resetPlanSel();
   const t = today();
+  $('#todaydate').textContent = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
   $('#daylabel').textContent = d === t ? 'Heute' : fmtDay(d);
   $('#todaybtn').hidden = d === t;
   $('#nextday').disabled = d >= t;
