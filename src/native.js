@@ -150,6 +150,10 @@ export async function scheduleWarranty(items) {
 export async function addCalendar(opts) { needApp(); return Kraft.addCalendarEvent(opts); }
 export async function setAlarm(opts) { needApp(); return Kraft.setAlarm(opts); }
 export async function setTimer(seconds, message) { needApp(); return Kraft.setTimer({ seconds, message }); }
+export async function sendMail(to, subject, body) {
+  if (isNative) return Kraft.sendMail({ to, subject, body });
+  location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
 
 /* ---------- Teilen / Export ---------- */
 /** data: Text oder Blob. */
@@ -167,6 +171,12 @@ export async function shareFile(filename, data, title) {
     written = await Filesystem.writeFile({ path: filename, data, directory: Directory.Cache, encoding: Encoding.UTF8 });
   }
   await Share.share({ title, files: [written.uri] });
+}
+
+export async function shareText(title, text) {
+  if (isNative) return Share.share({ title, text, dialogTitle: title });
+  if (navigator.share) return navigator.share({ title, text });
+  await navigator.clipboard.writeText(text);
 }
 
 export const tap = () => { if (isNative) Haptics.impact({ style: ImpactStyle.Light }).catch(() => {}); };

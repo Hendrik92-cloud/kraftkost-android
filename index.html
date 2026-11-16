@@ -11,11 +11,14 @@
 <div class="wrap">
 <header class="top">
   <div class="brand">Kraft<span>kost</span></div>
-  <div class="daynav" id="daynav">
-    <button class="ghost icon" id="prevday" aria-label="Vorheriger Tag">‹</button>
-    <div id="daylabel">Heute</div>
-    <button class="ghost icon" id="nextday" aria-label="Nächster Tag">›</button>
-    <button class="ghost sm" id="todaybtn" hidden>Heute</button>
+  <div class="right">
+    <div class="daynav" id="daynav">
+      <button class="ghost icon" id="prevday" aria-label="Vorheriger Tag">‹</button>
+      <div id="daylabel">Heute</div>
+      <button class="ghost icon" id="nextday" aria-label="Nächster Tag">›</button>
+      <button class="ghost sm" id="todaybtn" hidden>Heute</button>
+    </div>
+    <button class="ghost icon" id="gear" aria-label="Gewicht, Belege und Einstellungen"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
   </div>
 </header>
 
@@ -150,6 +153,7 @@
       <button type="button" class="mic icon" id="s-mic" aria-label="Einkauf einsprechen">🎤</button>
     </div>
     <div class="actions"><button class="primary" type="submit">Hinzufügen</button><button type="button" class="ghost" id="s-clear">Erledigte entfernen</button></div>
+    <p class="small muted" id="s-sync"></p>
   </form>
   <div id="s-list"></div>
   <div class="card" id="s-compare" hidden></div>
@@ -160,6 +164,21 @@
     <div class="filter" id="o-filter"></div>
     <div id="o-list"></div>
   </div>
+</section>
+
+<!-- NOTIZEN -->
+<section class="tab" id="tab-notizen" hidden>
+  <h2>Notizen</h2>
+  <form class="card" id="nform" autocomplete="off">
+    <button type="button" class="primary big" id="n-mic">🎤 Notiz sprechen</button>
+    <label for="n-text">Notiz<textarea id="n-text" rows="4" placeholder="Sprechen oder schreiben …"></textarea></label>
+    <div><div class="lbl">Gehört zu</div><div class="filter" id="n-to"></div></div>
+    <div class="actions"><button class="primary" type="submit" id="n-save">Speichern</button><button type="button" id="n-savesend">Speichern und mailen</button></div>
+    <p class="hint" id="n-hint"></p>
+  </form>
+  <div id="n-compose"></div>
+  <div class="filter" id="n-filter"></div>
+  <div id="n-list"></div>
 </section>
 
 <!-- MEHR -->
@@ -246,6 +265,42 @@
       <p class="hint" id="st-timehint"></p>
     </div>
 
+    <div class="card" id="set-family">
+      <h3>Mit der Familie teilen</h3>
+      <div id="fam-on" hidden class="stack">
+        <p class="small"><span class="dot" id="fam-dot"></span><span id="fam-status"></span></p>
+        <div class="actions"><button type="button" class="primary" id="fam-invite">Einladung teilen</button><button type="button" id="fam-sync">Jetzt abgleichen</button></div>
+        <button type="button" class="del" id="fam-off" style="justify-self:start">Verbindung trennen</button>
+      </div>
+      <div id="fam-off-box" class="stack">
+        <p class="small muted">Einkaufsliste und Wochenplan auf mehreren Handys, live abgeglichen. Beide können hinzufügen und abhaken.</p>
+        <details open><summary>Ich habe eine Einladung bekommen</summary>
+          <div class="stack" style="gap:8px"><label for="fam-code">Einladungscode<textarea id="fam-code" rows="2" placeholder="KK1:…"></textarea></label>
+          <div class="actions"><button type="button" class="primary" id="fam-join">Beitreten</button><button type="button" class="ghost" id="fam-paste">Aus Zwischenablage</button></div></div>
+        </details>
+        <details><summary>Neu einrichten (einmalig, am besten am PC)</summary>
+          <div class="stack" style="gap:8px">
+            <ol class="small" style="margin:0;padding-left:20px;display:grid;gap:4px">
+              <li>Auf supabase.com kostenlos ein Projekt anlegen.</li>
+              <li>Im Projekt unter „SQL Editor“ das Setup-Skript einfügen und auf „Run“ tippen.</li>
+              <li>Unter „Project Settings → API“ die Projekt-URL und den anon- bzw. publishable-Schlüssel kopieren und hier eintragen.</li>
+            </ol>
+            <div class="actions"><button type="button" class="sm" id="fam-sql">Setup-Skript kopieren</button></div>
+            <label for="fam-url">Projekt-URL<input id="fam-url" placeholder="https://xyz.supabase.co" inputmode="url"></label>
+            <label for="fam-key">Schlüssel (anon / publishable)<input id="fam-key" placeholder="sb_publishable_… oder eyJ…"></label>
+            <button type="button" class="primary" id="fam-create">Haushalt anlegen</button>
+          </div>
+        </details>
+      </div>
+      <p class="hint" id="fam-hint"></p>
+    </div>
+
+    <div class="card">
+      <div class="actions between"><h3>Firmen für Notizen</h3><button type="button" class="sm" id="co-add">Firma dazu</button></div>
+      <p class="small muted">Notizen zu einer Firma schickst du mit einem Tipp per Mail an diese Adresse.</p>
+      <div id="co-list" class="stack"></div>
+    </div>
+
     <form class="card" id="set-plz" autocomplete="off">
       <h3>Angebote</h3>
       <div class="row wide">
@@ -273,7 +328,7 @@
   <button data-tab="essen"><svg viewBox="0 0 24 24"><path d="M3 12h18a9 9 0 0 1-18 0zM8 8c0-2 2-2 2-4M13 8c0-2 2-2 2-4"/></svg>Essen</button>
   <button data-tab="plan"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h3M8 17h6"/></svg>Wochenplan</button>
   <button data-tab="einkauf"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.5 11h11L21 8H7"/><circle cx="9" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/></svg>Einkauf</button>
-  <button data-tab="mehr"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>Mehr</button>
+  <button data-tab="notizen"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h5"/></svg>Notizen</button>
 </nav>
 <div id="toast" hidden role="status"></div>
 <script type="module" src="./src/main.js"></script>

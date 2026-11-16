@@ -3,7 +3,10 @@ import { db, save, saveImage, readImage, deleteImage, replaceAll, flush } from '
 import { S, addRender, busy } from './app.js';
 import { $, $$, esc, de, num, uid, eur, today, addDays, addYears, daysUntil, fmtDay, fmtDate, fmtShort, toast, armed, WD } from './util.js';
 import { ask, askJSON, aiMsg } from './claude.js';
-import { takePhoto, shareFile, scheduleTraining, scheduleWarranty, addCalendar, setAlarm, isNative } from './native.js';
+import { takePhoto, shareFile, shareText, scheduleTraining, scheduleWarranty, addCalendar, setAlarm, isNative } from './native.js';
+import { connected, getStatus, onStatus, createHousehold, joinHousehold, inviteCode, syncNow, disconnect } from './sync.js';
+import { copy, paste } from './bridge.js';
+import setupSQL from '../supabase/setup.sql?raw';
 
 /* ================= Gewicht ================= */
 function renderWeight() {
@@ -201,8 +204,29 @@ function renderSettings() {
     const i = +b.dataset.std; s.trainDays = s.trainDays.includes(i) ? s.trainDays.filter(x => x !== i) : s.trainDays.concat(i).sort((a, c) => a - c);
     save(); reschedule();
   });
-  renderHousehold();
+  renderHousehold(); renderFamily(); renderCompanies();
   $('#nokey').hidden = !!s.apiKey || !!s.keyNoticeSeen;
+}
+
+/* ---------- Familie teilen ---------- */
+function renderFamily() {
+  const on = connected(); const st = getStatus();
+  $('#fam-on').hidden = !on; $('#fam-off-box').hidden = on;
+  const text = !on ? '' : st.state === 'error' ? st.msg : st.at ? `Verbunden · zuletzt abgeglichen ${st.at.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}` : 'Verbunden';
+  $('#fam-status').textContent = text;
+  $('#fam-dot').className = 'dot ' + (st.state === 'error' ? 'err' : on ? 'ok' : '');
+  $('#s-sync').textContent = on ? (st.state === 'error' ? '⚠ ' + st.msg : 'Wird mit der Familie geteilt.') : '';
+}
+function renderCompanies() {
+  const box = $('#co-list'); if (box.contains(document.activeElement)) return;
+  const C = db.settings.companies;
+  box.innerHTML = C.length ? C.map((c, i) => `<div class="person">
+      <label for="co-n${i}">Firma<input id="co-n${i}" data-co="${i}" data-k="name" value="${esc(c.name)}" placeholder="z. B. Firmenname"></label>
+      <label for="co-e${i}">E-Mail<input id="co-e${i}" data-co="${i}" data-k="email" type="email" inputmode="email" value="${esc(c.email)}" placeholder="name@firma.de"></label>
+      <div class="actions"><button type="button" class="del" data-codel="${i}">Firma entfernen</button></div></div>`).join('')
+    : '<p class="small muted">Noch keine Firma angelegt.</p>';
+  box.querySelectorAll('[data-co]').forEach(el => el.onchange = () => { C[+el.dataset.co][el.dataset.k] = el.value.trim(); save(); });
+  box.querySelectorAll('[data-codel]').forEach(b => b.onclick = () => { if (!armed(b)) return; C.splice(+b.dataset.codel, 1); box.innerHTML = ''; save(); });
 }
 function renderHousehold() {
   const box = $('#hh-list'); if (box.contains(document.activeElement)) return;
@@ -343,6 +367,28 @@ export function initMehr() {
       $('#st-timehint').textContent = `Wecker für ${String(ah).padStart(2, '0')}:${String(am).padStart(2, '0')} an deinen Trainingstagen gestellt.`;
     } catch (e) { $('#st-timehint').textContent = e.message; }
   };
+  /* Familie */
+  const famHint = $('#fam-hint');
+  $('#fam-sql').onclick = async () => { famHint.textContent = (await copy(setupSQL)) ? 'Setup-Skript kopiert. In Supabase unter „SQL Editor“ einfügen und ausführen.' : 'Kopieren ging nicht. Das Skript liegt auch im GitHub-Repo unter supabase/setup.sql.'; };
+  $('#fam-create').onclick = () => busy($('#fam-create'), famHint, 'Verbinde …', async () => {
+    try { await createHousehold($('#fam-url').value, $('#fam-key').value); famHint.textContent = 'Haushalt angelegt. Jetzt „Einladung teilen“ und an deine Familie schicken.'; }
+    catch (e) { famHint.textContent = e.message; }
+  });
+  $('#fam-paste').onclick = async () => { const t = await paste(); if (t) $('#fam-code').value = t; else famHint.textContent = 'Zwischenablage ist leer. Füg den Code ins Feld ein.'; };
+  $('#fam-join').onclick = () => busy($('#fam-join'), famHint, 'Trete bei …', async () => {
+    try { await joinHousehold($('#fam-code').value); $('#fam-code').value = ''; famHint.textContent = 'Verbunden. Einkaufsliste und Wochenplan sind jetzt gemeinsam.'; }
+    catch (e) { famHint.textContent = e.message; }
+  });
+  $('#fam-invite').onclick = async () => {
+    const code = inviteCode();
+    try { await shareText('Kraftkost-Einladung', `Tritt unserer Kraftkost-Einkaufsliste bei: In der App auf das Zahnrad → Einstellungen → „Mit der Familie teilen“ und diesen Code einfügen:\n\n${code}`); }
+    catch { famHint.textContent = (await copy(code)) ? 'Code kopiert. Schick ihn per WhatsApp.' : code; }
+  };
+  $('#fam-sync').onclick = () => busy($('#fam-sync'), null, '', syncNow);
+  $('#fam-off').onclick = e => { if (!armed(e.currentTarget)) return; disconnect(); famHint.textContent = 'Getrennt. Deine Einträge bleiben auf diesem Handy.'; };
+  onStatus(renderFamily);
+  $('#co-add').onclick = () => { db.settings.companies.push({ id: uid(), name: '', email: '' }); $('#co-list').innerHTML = ''; save(); };
+
   $('#bk-export').onclick = exportBackup;
   $('#bk-import').onclick = importBackup;
   $('#about').textContent = `Kraftkost ${isNative ? 'App' : 'Vorschau im Browser'} · Daten nur auf diesem Gerät · Nährwerte vom Barcode: Open Food Facts (ODbL)`;

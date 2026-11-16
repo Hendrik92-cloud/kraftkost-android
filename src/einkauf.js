@@ -14,14 +14,19 @@ export function addShopItems(items) {
   let n = 0;
   items.forEach(it => {
     const name = String(it.name || '').trim(); if (!name) return;
-    const ex = db.shop.find(x => !x.done && x.name.toLowerCase() === name.toLowerCase());
-    if (ex) { if (it.amount && !ex.amount) ex.amount = it.amount; return; }
-    db.shop.push({ id: uid(), name, amount: it.amount || '', cat: it.cat || guessCat(name), done: false });
+    const ex = live().find(x => !x.done && x.name.toLowerCase() === name.toLowerCase());
+    if (ex) { if (it.amount && !ex.amount) { ex.amount = it.amount; touch(ex); } return; }
+    db.shop.push(touch({ id: uid(), name, amount: it.amount || '', cat: it.cat || guessCat(name), done: false }));
     n++;
   });
   if (n) save();
   return n;
 }
+/** Änderung für den Familien-Abgleich vormerken. */
+const touch = x => { x.updated = Date.now(); x.dirty = true; return x; };
+/** Einträge ohne die zum Löschen vorgemerkten. */
+const live = () => db.shop.filter(x => !x.deleted);
+const removeItem = x => { if (db.settings.sync) { x.deleted = true; touch(x); } else db.shop = db.shop.filter(s => s !== x); };
 const CAT_HINTS = [
   ['Obst & Gemüse', /apfel|banane|beere|tomate|gurke|paprika|salat|zwiebel|knoblauch|kartoffel|möhre|karotte|brokkoli|zucchini|champignon|pilz|obst|gemüse|zitrone|spinat|kohl|lauch|avocado|birne|traube/i],
   ['Fleisch & Fisch', /hähnchen|huhn|pute|rind|schwein|hack|fleisch|lachs|thunfisch|fisch|wurst|schinken|filet/i],
@@ -39,7 +44,7 @@ function matches(name) {
 }
 
 function renderShop() {
-  const it = db.shop;
+  const it = live();
   const box = $('#s-list');
   if (!it.length) { box.innerHTML = '<div class="empty">Die Liste ist leer. Sprich oder tipp oben etwas ein, oder lass sie aus dem Wochenplan erstellen.</div>'; }
   else {
@@ -54,15 +59,15 @@ function renderShop() {
           ${m.length ? `<div class="chips">${m.map(o => `<span class="chip">${esc(o.store)} ${eur(o.price)}</span>`).join('')}</div>` : ''}
         </label><button type="button" class="del" data-srm="${x.id}" aria-label="Von der Liste nehmen">×</button></div>`;
     }).join('')).join('') + '</div>';
-    box.querySelectorAll('[data-chk]').forEach(c => c.onchange = () => { const x = db.shop.find(s => s.id === c.dataset.chk); if (x) { x.done = c.checked; save(); } });
-    box.querySelectorAll('[data-srm]').forEach(b => b.onclick = () => { db.shop = db.shop.filter(s => s.id !== b.dataset.srm); save(); });
+    box.querySelectorAll('[data-chk]').forEach(c => c.onchange = () => { const x = db.shop.find(s => s.id === c.dataset.chk); if (x) { x.done = c.checked; touch(x); save(); } });
+    box.querySelectorAll('[data-srm]').forEach(b => b.onclick = () => { const x = db.shop.find(s => s.id === b.dataset.srm); if (x) { removeItem(x); save(); } });
   }
   $('#s-clear').hidden = !it.some(x => x.done);
   renderCompare(); renderOffers();
 }
 
 function renderCompare() {
-  const box = $('#s-compare'); const open = db.shop.filter(x => !x.done); const O = db.offers?.items || [];
+  const box = $('#s-compare'); const open = live().filter(x => !x.done); const O = db.offers?.items || [];
   if (!O.length || !open.length) { box.hidden = true; return; }
   const rows = STORES.map(st => {
     let n = 0, save_ = 0;
@@ -100,7 +105,7 @@ function renderOffers() {
 async function searchOffers() {
   const plz = db.settings.plz;
   if (!plz) { toast('Trag zuerst deine Postleitzahl unter Mehr → Einstellungen ein.'); return; }
-  const wanted = [...new Set(db.shop.filter(x => !x.done).map(x => x.name).concat((db.mealplan?.days || []).flatMap(d => d.meals.flatMap(m => m.ingredients.map(z => z.name)))))].slice(0, 40);
+  const wanted = [...new Set(live().filter(x => !x.done).map(x => x.name).concat((db.mealplan?.days || []).flatMap(d => d.meals.flatMap(m => m.ingredients.map(z => z.name)))))].slice(0, 40);
   const prompt = `Suche im Internet die aktuell gültigen Lebensmittel-Angebote dieser Woche (heute ist ${fmtDay(today())} ${today().slice(0, 4)}) bei Aldi, Lidl, Penny und Netto Marken-Discount für die Postleitzahl ${plz}. Kläre, ob dort Aldi Nord oder Aldi Süd zuständig ist.
 ${wanted.length ? 'Achte besonders auf diese Produkte von der Einkaufsliste und aus dem Essensplan: ' + wanted.join(', ') + '.' : ''}
 Außerdem gesunde Grundnahrungsmittel: Fleisch, Fisch, Milchprodukte, Quark, Eier, Obst, Gemüse, Haferflocken, Reis, Nudeln, Hülsenfrüchte. Keine Non-Food-Artikel, keine Süßigkeiten, kein Alkohol.
@@ -145,7 +150,7 @@ export function initEinkauf() {
       toast(n ? `${n} Sachen auf die Liste gesetzt` : 'Steht schon alles drauf');
     } catch (e) { toast(e.message); }
   };
-  $('#s-clear').onclick = () => { db.shop = db.shop.filter(x => !x.done); save(); };
+  $('#s-clear').onclick = () => { live().filter(x => x.done).forEach(removeItem); save(); };
   $('#o-search').onclick = searchOffers;
   addRender(renderShop);
 }

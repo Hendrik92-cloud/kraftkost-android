@@ -7,12 +7,12 @@ const IMG = id => `kraftkost/img/${id}.jpg`;
 
 export const defaults = () => ({
   v: 1,
-  workouts: [], meals: [], weights: [], receipts: [], dishes: [], shop: [],
+  workouts: [], meals: [], weights: [], receipts: [], dishes: [], shop: [], notes: [],
   plan: null, mealplan: null, offers: null,
   settings: {
     kcalGoal: null, proteinGoal: null,
     trainDays: [0, 2, 4], trainTime: '18:00', trainMinutes: 60, remind: false, warrantyRemind: true,
-    plz: '', apiKey: '',
+    plz: '', apiKey: '', sync: null, companies: [],
     modelQuick: 'claude-haiku-5-5', modelSmart: 'claude-sonnet-5-5',
     household: [
       { id: 'ich', name: 'Ich', kind: 'adult', factor: 1, likes: '', dislikes: '' },

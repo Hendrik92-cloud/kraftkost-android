@@ -19,7 +19,13 @@ body{font-family:var(--body);font-size:16px;line-height:1.45;padding:env(safe-ar
 header.top{position:sticky;top:0;z-index:5;background:var(--bg);padding-block:12px 10px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
 .brand{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:.02em;text-transform:uppercase;line-height:1}
 .brand span{color:var(--accent)}
-.daynav{margin-left:auto;display:flex;align-items:center;gap:2px}
+.right{margin-left:auto;display:flex;align-items:center;gap:4px}
+.daynav{display:flex;align-items:center;gap:2px}
+#gear{color:var(--muted)}
+.note-text{white-space:pre-wrap;overflow-wrap:anywhere}
+textarea{resize:vertical;line-height:1.4}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--muted);margin-right:6px}
+.dot.ok{background:var(--ok)} .dot.err{background:var(--danger)}
 #daylabel{min-width:104px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
 main{padding-block:16px calc(92px + env(safe-area-inset-bottom,0px))}
 section.tab,.stack{display:grid;gap:16px}

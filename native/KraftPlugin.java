@@ -1,6 +1,7 @@
 package de.kraftkost.app;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.provider.AlarmClock;
 import android.provider.CalendarContract;
 
@@ -56,6 +57,16 @@ public class KraftPlugin extends Plugin {
             }
             i.putExtra(AlarmClock.EXTRA_DAYS, list);
         }
+        launch(call, i);
+    }
+
+    @PluginMethod
+    public void sendMail(PluginCall call) {
+        Intent i = new Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"));
+        String to = call.getString("to", "");
+        if (to != null && !to.trim().isEmpty()) i.putExtra(Intent.EXTRA_EMAIL, to.trim().split("\\s*[,;]\\s*"));
+        i.putExtra(Intent.EXTRA_SUBJECT, call.getString("subject", ""));
+        i.putExtra(Intent.EXTRA_TEXT, call.getString("body", ""));
         launch(call, i);
     }
 

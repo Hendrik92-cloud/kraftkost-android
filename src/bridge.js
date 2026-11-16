@@ -3,14 +3,14 @@ import { Clipboard } from '@capacitor/clipboard';
 import { $, esc, toast } from './util.js';
 import { isNative } from './native.js';
 
-async function copy(text) {
+export async function copy(text) {
   try {
     if (isNative) await Clipboard.write({ string: text });
     else await navigator.clipboard.writeText(text);
     return true;
   } catch { return false; }
 }
-async function paste() {
+export async function paste() {
   try {
     if (isNative) return (await Clipboard.read()).value || '';
     return await navigator.clipboard.readText();

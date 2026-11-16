@@ -8,6 +8,8 @@ import { addShopItems, CATS } from './einkauf.js';
 import { scheduleTraining } from './native.js';
 
 let sel = null, editing = null;
+/** Änderung am Plan für den Familien-Abgleich vormerken. */
+const touchPlan = () => { if (db.mealplan) { db.mealplan.updatedAt = Date.now(); db.mealplan.dirty = true; } };
 const slotsFor = n => ['Frühstück', 'Mittag', 'Abend', 'Snack', 'Snack'].slice(0, n);
 
 const mapMeal = m => ({
@@ -86,13 +88,13 @@ function renderPlanView() {
     logMeal({ slot: m.slot, name: m.name, kcal: m.kcal, protein: m.protein, carbs: m.carbs, fat: m.fat }, d.date <= today() ? d.date : today());
     toast(`Eingetragen für ${d.date === today() ? 'heute' : fmtDay(d.date <= today() ? d.date : today())}`);
   });
-  v.querySelectorAll('[data-lock]').forEach(b => b.onclick = () => { const m = d.meals[+b.dataset.lock]; m.locked = !m.locked; save(); });
+  v.querySelectorAll('[data-lock]').forEach(b => b.onclick = () => { const m = d.meals[+b.dataset.lock]; m.locked = !m.locked; touchPlan(); save(); });
   v.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => { editing = d.meals[+b.dataset.edit].id; renderPlanView(); });
   v.querySelectorAll('[data-edcancel]').forEach(b => b.onclick = () => { editing = null; renderPlanView(); });
   v.querySelectorAll('[data-edsave]').forEach(b => b.onclick = () => {
     const m = d.meals[+b.dataset.edsave];
     m.name = $('#ed-name').value.trim() || m.name; m.kcal = num($('#ed-kcal').value) ?? m.kcal; m.protein = num($('#ed-p').value) ?? m.protein;
-    editing = null; save(); toast('Geändert');
+    editing = null; touchPlan(); save(); toast('Geändert');
   });
   v.querySelectorAll('[data-swap]').forEach(b => b.onclick = () => swapMeal(d, +b.dataset.swap, b));
   $('#mp-shop').onclick = () => buildShopping(P);
@@ -111,7 +113,7 @@ Haushalt: ${householdText()}. Aufwand: ${db.mealplan.effort || 'normal'}.${db.me
 Nährwerte für die Portion des Erwachsenen mit Anteil 1. Zutatenmengen für den ganzen Haushalt zusammen (${factorStr(Math.round(familyFactor() * 10) / 10)} Portionen).
 Form: {"slot":"${m.slot}","name":"…","kcal":600,"protein":40,"kohlenhydrate":60,"fett":18,"zeit":"25 min","zutaten":[{"name":"…","menge":"…"}],"zubereitung":"2 bis 3 Sätze","kind_tipp":"optional, kurz"}`, { maxTokens: 1500 });
       const nm = mapMeal(r); if (!nm.name) throw new Error();
-      nm.slot = m.slot; day.meals[i] = nm; save(); toast('Getauscht: ' + nm.name);
+      nm.slot = m.slot; day.meals[i] = nm; touchPlan(); save(); toast('Getauscht: ' + nm.name);
     } catch (e) { toast(e.code ? aiMsg(e) : 'Tauschen hat nicht geklappt. Versuch es nochmal.'); }
   });
 }
@@ -195,6 +197,7 @@ function applyMealPlan(r, { dates, keep, td, meals, effort, pref }) {
   const shopping = (r.einkauf || []).map(x => ({ name: String(x.name || ''), amount: String(x.menge || ''), cat: CATS.includes(x.kategorie) ? x.kategorie : 'Sonstiges' })).filter(x => x.name);
   db.mealplan = { days, shopping, kcalTarget: num(r.ziel_kcal) || s.kcalGoal || null, mealsPerDay: meals, effort, pref, createdAt: Date.now() };
   if (!s.kcalGoal && db.mealplan.kcalTarget) s.kcalGoal = db.mealplan.kcalTarget;
+  touchPlan();
   sel = null; editing = null; $('#mp-setup').open = false; $('#mp-hint').textContent = '';
   save(); toast('Wochenplan gespeichert');
   window.scrollTo({ top: 0, behavior: 'smooth' });

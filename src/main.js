@@ -8,8 +8,10 @@ import { initEssen } from './essen.js';
 import { initPlan } from './plan.js';
 import { initEinkauf } from './einkauf.js';
 import { initMehr, showMore } from './mehr.js';
+import { initNotes } from './notes.js';
+import { startSync, connected, pull } from './sync.js';
 
-const TABS = ['training', 'essen', 'plan', 'einkauf', 'mehr'];
+const TABS = ['training', 'essen', 'plan', 'einkauf', 'notizen', 'mehr'];
 const history = [];
 
 function showTab(t, push = true) {
@@ -19,7 +21,9 @@ function showTab(t, push = true) {
   TABS.forEach(x => ($('#tab-' + x).hidden = x !== t));
   $$('nav.tabs button').forEach(b => (b.dataset.tab === t ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current')));
   $('#daynav').hidden = !(t === 'training' || t === 'essen');
+  $('#gear').style.color = t === 'mehr' ? 'var(--accent)' : '';
   window.scrollTo(0, 0);
+  if ((t === 'einkauf' || t === 'plan') && connected()) pull();
 }
 
 function setDay(d) {
@@ -33,8 +37,10 @@ function setDay(d) {
 
 async function boot() {
   await load();
-  initTraining(); initEssen(); initPlan(); initEinkauf(); initMehr();
+  initTraining(); initEssen(); initPlan(); initEinkauf(); initNotes(); initMehr();
   onChange(renderAll);
+  startSync(() => S.tab === 'einkauf' || S.tab === 'plan');
+  $('#gear').onclick = () => { tap(); showTab('mehr'); };
 
   $$('nav.tabs button').forEach(b => (b.onclick = () => { tap(); showTab(b.dataset.tab); }));
   $('#prevday').onclick = () => setDay(addDays(S.day, -1));
@@ -48,7 +54,7 @@ async function boot() {
   if (isNative) {
     App.addListener('pause', () => flush());
     // Nach Mitternacht wieder auf „Heute“ springen, wenn vorher „Heute“ offen war.
-    App.addListener('resume', () => { if (S.day < today() && $('#todaybtn').hidden) setDay(today()); else renderAll(); });
+    App.addListener('resume', () => { if (S.day < today() && $('#todaybtn').hidden) setDay(today()); else renderAll(); if (connected()) pull(); });
     App.addListener('backButton', () => {
       const open = document.querySelector('details[open]');
       if (history.length) showTab(history.pop(), false);
