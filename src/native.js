@@ -152,6 +152,20 @@ export async function scheduleSupps({ morgens, abends, times, on }) {
   return true;
 }
 
+/** Erinnerungen ans Eintragen der Mahlzeiten (IDs 300–399). items: [{id, title, body, at}] ersetzt alle. */
+export async function scheduleMeals(items, ask = false) {
+  if (!isNative) return false;
+  const pending = await LocalNotifications.getPending().catch(() => ({ notifications: [] }));
+  const old = pending.notifications.filter(n => n.id >= 300 && n.id < 400).map(n => ({ id: n.id }));
+  if (old.length) await LocalNotifications.cancel({ notifications: old }).catch(() => {});
+  const fut = items.filter(i => i.at > new Date());
+  if (!fut.length) return true;
+  const perm = ask ? await notifPerm() : (await LocalNotifications.checkPermissions()).display === 'granted';
+  if (!perm) { if (ask) throw new NativeError('perm', 'Benachrichtigungen sind blockiert. Erlaube sie in den Android-Einstellungen.'); return false; }
+  await LocalNotifications.schedule({ notifications: fut.map(i => ({ id: i.id, title: i.title, body: i.body, schedule: { at: i.at, allowWhileIdle: true }, extra: { tab: 'essen' } })) });
+  return true;
+}
+
 /** items: [{id, title, body, at: Date}] — ersetzt alle Garantie-Erinnerungen. */
 export async function scheduleWarranty(items) {
   if (!isNative) return;
