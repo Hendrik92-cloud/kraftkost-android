@@ -1,5 +1,5 @@
 import { db, save } from './store.js';
-import { S, addRender, busy, kcalFor } from './app.js';
+import { S, addRender, busy, kcalFor, sportBonus } from './app.js';
 import { $, $$, esc, de, num, uid, today, fmtDay, toast, armed } from './util.js';
 import { ask, askJSON, aiMsg, hasKey } from './claude.js';
 import { listen, takePhoto, scanBarcode, lookupFood } from './native.js';
@@ -30,7 +30,7 @@ function renderMeals() {
   const left = goal ? goal - kcal : null;
   const big = left == null
     ? `<div class="bignum"><b>${de(kcal)}</b><span>kcal gegessen</span></div>`
-    : left >= 0 ? `<div class="bignum"><b>${de(left)}</b><span>kcal übrig von ${de(goal)}</span></div>`
+    : left >= 0 ? `<div class="bignum"><b>${de(left)}</b><span>kcal übrig von ${de(goal)}${sportBonus(S.day) ? ` (inkl. +${de(sportBonus(S.day))} Sport)` : ''}</span></div>`
     : `<div class="bignum"><b class="kcal">${de(-left)}</b><span>kcal über dem Ziel</span></div>`;
   $('#m-summary').innerHTML = `<h3>${S.day === today() ? 'Heute' : fmtDay(S.day)}</h3>` + big +
     meter('Kalorien', kcal, goal, 'kcal', '') + meter('Eiweiß', protein, g.proteinGoal, 'g', 'p') +
@@ -41,7 +41,7 @@ function renderMeals() {
       xs.map(m => `<div class="item"><div class="main"><div class="t">${esc(m.name)}</div><div class="s">${m.kcal != null ? `<span class="kcal">${de(m.kcal)} kcal</span> · ` : ''}E ${de(m.protein)} · K ${de(m.carbs)} · F ${de(m.fat)} g</div></div><button type="button" class="del" data-mdel="${m.id}">Entfernen</button></div>`).join('');
   }).join('') + '</div>' : '<div class="empty">Noch nichts eingetragen. Sprich oder tipp oben ein, was du gegessen hast, oder hak im Wochenplan ein Gericht als gegessen ab.</div>';
   $$('[data-mdel]').forEach(b => b.onclick = () => { if (!armed(b)) return; db.meals = db.meals.filter(m => m.id !== b.dataset.mdel); save(); });
-  renderQuick(); renderDishes();
+  renderQuick(); renderDishes(); renderActivity();
   // Ohne Schlüssel nur zeigen, was auch funktioniert.
   const k = hasKey();
   $('#m-est').hidden = !k; $('#m-photo').hidden = !k; $('#m-tipcard').hidden = !k;
@@ -169,7 +169,22 @@ Trainingsziel: ${db.plan?.goal || 'nicht angegeben'}. Heute trainiert: ${trained
   });
 }
 
+/* Sport von der Uhr: verbrannte Kalorien und Schritte, von Hand abgetippt. */
+function renderActivity() {
+  const a = db.activity?.[S.day] || {};
+  ['kcal', 'steps'].forEach(k => { const el = $('#act-' + k); if (document.activeElement !== el) el.value = a[k] || ''; });
+  const b = sportBonus(S.day);
+  $('#act-hint').textContent = b ? `+${de(b)} kcal fürs Essen (die Hälfte der Sport-Kalorien).` : '';
+}
+function saveActivity() {
+  const kcal = Math.max(0, Math.round(num($('#act-kcal').value) || 0)), steps = Math.max(0, Math.round(num($('#act-steps').value) || 0));
+  db.activity = db.activity || {};
+  if (kcal || steps) db.activity[S.day] = { kcal, steps }; else delete db.activity[S.day];
+  save();
+}
+
 export function initEssen() {
+  ['#act-kcal', '#act-steps'].forEach(i => $(i).addEventListener('change', saveActivity));
   $('#m-slot').value = guessSlot();
   macSum();
   ['#m-kcal', '#m-p'].forEach(i => $(i).addEventListener('input', macSum));

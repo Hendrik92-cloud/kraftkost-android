@@ -21,10 +21,14 @@ export const lastWeight = () => {
 };
 
 /** Kalorienziel für einen Tag: am Wochenende das eigene Wochenendziel, falls gesetzt. */
-export const kcalFor = date => {
+/** Grundziel des Tages (Wochenende mehr), ohne Sport. */
+export const kcalBase = date => {
   const s = db.settings; const wd = new Date(date + 'T12:00').getDay();
   return (wd === 0 || wd === 6) && s.kcalWeekend ? s.kcalWeekend : s.kcalGoal;
 };
+/** Die Hälfte der Sport-Kalorien von der Uhr darf zusätzlich gegessen werden (Uhren schätzen eher zu hoch). */
+export const sportBonus = date => Math.round((Number(db.activity?.[date]?.kcal) || 0) / 2);
+export const kcalFor = date => { const b = kcalBase(date); return b ? b + sportBonus(date) : b; };
 export const kcalText = () => {
   const s = db.settings;
   if (!s.kcalGoal) return '';

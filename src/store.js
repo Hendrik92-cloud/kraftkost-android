@@ -7,7 +7,7 @@ const IMG = id => `kraftkost/img/${id}.jpg`;
 
 export const defaults = () => ({
   v: 1,
-  workouts: [], meals: [], weights: [], receipts: [], dishes: [], shop: [], notes: [], suppLog: {}, aiJobs: {},
+  workouts: [], meals: [], weights: [], receipts: [], dishes: [], shop: [], notes: [], suppLog: {}, aiJobs: {}, activity: {},
   plan: null, mealplan: null, offers: null,
   settings: {
     kcalGoal: null, proteinGoal: null,
