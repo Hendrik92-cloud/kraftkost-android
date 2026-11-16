@@ -223,7 +223,10 @@
   <div id="more-einstellungen" class="stack" hidden>
     <form class="card" id="set-key" autocomplete="off">
       <h3>Claude</h3>
-      <label for="st-key">API-Schlüssel<input id="st-key" type="password" placeholder="sk-ant-…" autocomplete="off"></label>
+      <div class="inputmic">
+        <label for="st-key">API-Schlüssel<input id="st-key" type="password" placeholder="sk-ant-…" autocomplete="off"></label>
+        <button type="button" id="st-paste">Einfügen</button>
+      </div>
       <p class="small muted">Freiwillig. Ohne Schlüssel erstellst du Pläne und Angebote über die Claude-App. Mit Schlüssel geht alles direkt, dazu Teller-Foto, Belege auslesen und Tipps. Anlegen unter console.anthropic.com, abgerechnet nach Verbrauch. Der Schlüssel bleibt nur auf diesem Handy und kommt nicht ins Backup.</p>
       <details><summary>Modelle</summary>
         <div class="row" style="margin-top:8px">

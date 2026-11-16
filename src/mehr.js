@@ -336,6 +336,14 @@ export function initMehr() {
     db.settings.apiKey = $('#st-key').value.trim(); db.settings.modelQuick = $('#st-mq').value.trim() || 'claude-haiku-5-5'; db.settings.modelSmart = $('#st-ms').value.trim() || 'claude-sonnet-5-5';
     save(); toast('Gespeichert');
   };
+  // Schlüssel aus der Zwischenablage übernehmen, speichern und gleich testen.
+  $('#st-paste').onclick = async () => {
+    const t = (await paste()).trim();
+    const m = t.match(/sk-ant-[A-Za-z0-9_\-]+/);
+    if (!m) { $('#st-keyhint').textContent = t ? 'In der Zwischenablage ist kein Schlüssel (er beginnt mit „sk-ant-“). Kopier ihn nochmal.' : 'Die Zwischenablage ist leer. Kopier den Schlüssel zuerst.'; return; }
+    $('#st-key').value = m[0]; db.settings.apiKey = m[0]; save();
+    $('#st-test').click();
+  };
   $('#st-test').onclick = async () => {
     db.settings.apiKey = $('#st-key').value.trim(); save();
     await busy($('#st-test'), $('#st-keyhint'), 'Teste …', async () => {
