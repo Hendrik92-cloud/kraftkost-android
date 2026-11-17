@@ -111,59 +111,56 @@ async function notifPerm() {
   const p = await LocalNotifications.requestPermissions();
   return p.display === 'granted';
 }
-const TRAIN_IDS = [101, 102, 103, 104, 105, 106, 107];
-
-/** days: 0=Mo … 6=So, time "HH:MM". Erinnerung 60 Minuten vorher. */
-export async function scheduleTraining(days, time, on) {
-  if (!isNative) return false;
-  await LocalNotifications.cancel({ notifications: TRAIN_IDS.map(id => ({ id })) }).catch(() => {});
-  if (!on || !days.length) return true;
-  if (!(await notifPerm())) throw new NativeError('perm', 'Benachrichtigungen sind blockiert. Erlaube sie in den Android-Einstellungen.');
-  const [h, m] = time.split(':').map(Number);
-  let rh = h - 1; let rd = 0;
-  if (rh < 0) { rh = 23; rd = -1; }
-  await LocalNotifications.schedule({
-    notifications: days.map(d => {
-      const day = (d + rd + 7) % 7;
-      return {
-        id: TRAIN_IDS[d], title: 'Heute ist Trainingstag',
-        body: `Um ${time} geht's ins Studio. Dein Plan liegt in Kraftkost bereit.`,
-        schedule: { on: { weekday: ((day + 1) % 7) + 1, hour: rh, minute: m }, allowWhileIdle: true }
-      };
-    })
-  });
+/*
+ * Alle Erinnerungen werden als einzelne Termine für die nächsten 14 Tage gestellt und bei jedem
+ * Öffnen der App erneuert. Wiederkehrende Android-Wecker gehen nach einem Update verloren und
+ * werden ab der zweiten Wiederholung nur „wenn das Handy gerade wach ist“ ausgelöst.
+ */
+const DAYS_AHEAD = 14;
+async function replaceRange(lo, hi, items, ask) {
+  const pending = await LocalNotifications.getPending().catch(() => ({ notifications: [] }));
+  const old = pending.notifications.filter(n => n.id >= lo && n.id < hi).map(n => ({ id: n.id }));
+  // alte wiederkehrende IDs aus früheren Versionen mit aufräumen
+  const legacy = [101, 102, 103, 104, 105, 106, 107, 201, 202].filter(id => id >= lo && id < hi).map(id => ({ id }));
+  if (old.length || legacy.length) await LocalNotifications.cancel({ notifications: [...old, ...legacy] }).catch(() => {});
+  const fut = items.filter(i => i.at > new Date());
+  if (!fut.length) return true;
+  const perm = ask ? await notifPerm() : (await LocalNotifications.checkPermissions()).display === 'granted';
+  if (!perm) { if (ask) throw new NativeError('perm', 'Benachrichtigungen sind blockiert. Erlaube sie in den Android-Einstellungen.'); return false; }
+  await LocalNotifications.schedule({ notifications: fut.map(i => ({ id: i.id, title: i.title, body: i.body, schedule: { at: i.at, allowWhileIdle: true }, ...(i.extra ? { extra: i.extra } : {}) })) });
   return true;
 }
+const at = (offset, hh, mm) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + offset); d.setHours(hh, mm, 0, 0); return d; };
 
-/** Tägliche Erinnerung an Nahrungsergänzung, morgens und abends. names: Liste je Tageszeit. */
-const SUPP_IDS = { morgens: 201, abends: 202 };
-export async function scheduleSupps({ morgens, abends, times, on }) {
+/** days: 0=Mo … 6=So, time "HH:MM". Erinnerung 60 Minuten vorher. IDs 100–199. */
+export async function scheduleTraining(days, time, on, ask = true) {
   if (!isNative) return false;
-  await LocalNotifications.cancel({ notifications: Object.values(SUPP_IDS).map(id => ({ id })) }).catch(() => {});
-  const list = [['morgens', morgens], ['abends', abends]].filter(([, n]) => n.length);
-  if (!on || !list.length) return true;
-  if (!(await notifPerm())) throw new NativeError('perm', 'Benachrichtigungen sind blockiert. Erlaube sie in den Android-Einstellungen.');
-  await LocalNotifications.schedule({
-    notifications: list.map(([k, names]) => {
-      const [h, m] = (times[k] || (k === 'morgens' ? '07:00' : '21:00')).split(':').map(Number);
-      return { id: SUPP_IDS[k], title: k === 'morgens' ? 'Morgens einnehmen' : 'Abends einnehmen', body: names.join(', '), schedule: { on: { hour: h, minute: m }, allowWhileIdle: true } };
-    })
+  const [h, m] = time.split(':').map(Number);
+  const items = [];
+  if (on) for (let i = 0; i < DAYS_AHEAD; i++) {
+    const t = at(i, h, m); const wd = (t.getDay() + 6) % 7;
+    if (!days.includes(wd)) continue;
+    items.push({ id: 110 + i, at: new Date(t.getTime() - 3600000), title: 'Heute ist Trainingstag', body: `Um ${time} geht's ins Studio. Dein Plan liegt in Kraftkost bereit.`, extra: { tab: 'training' } });
+  }
+  return replaceRange(100, 200, items, ask && on && days.length > 0);
+}
+
+/** Erinnerung an Nahrungsergänzung, morgens und abends. IDs 200–299. */
+export async function scheduleSupps({ morgens, abends, times, on }, ask = true) {
+  if (!isNative) return false;
+  const items = [];
+  if (on) [['morgens', morgens, 210], ['abends', abends, 250]].forEach(([k, names, base]) => {
+    if (!names.length) return;
+    const [h, m] = (times[k] || (k === 'morgens' ? '07:00' : '21:00')).split(':').map(Number);
+    for (let i = 0; i < DAYS_AHEAD; i++) items.push({ id: base + i, at: at(i, h, m), title: k === 'morgens' ? 'Morgens einnehmen' : 'Abends einnehmen', body: names.join(', '), extra: { tab: 'essen' } });
   });
-  return true;
+  return replaceRange(200, 300, items, ask && items.length > 0);
 }
 
 /** Erinnerungen ans Eintragen der Mahlzeiten (IDs 300–399). items: [{id, title, body, at}] ersetzt alle. */
 export async function scheduleMeals(items, ask = false) {
   if (!isNative) return false;
-  const pending = await LocalNotifications.getPending().catch(() => ({ notifications: [] }));
-  const old = pending.notifications.filter(n => n.id >= 300 && n.id < 400).map(n => ({ id: n.id }));
-  if (old.length) await LocalNotifications.cancel({ notifications: old }).catch(() => {});
-  const fut = items.filter(i => i.at > new Date());
-  if (!fut.length) return true;
-  const perm = ask ? await notifPerm() : (await LocalNotifications.checkPermissions()).display === 'granted';
-  if (!perm) { if (ask) throw new NativeError('perm', 'Benachrichtigungen sind blockiert. Erlaube sie in den Android-Einstellungen.'); return false; }
-  await LocalNotifications.schedule({ notifications: fut.map(i => ({ id: i.id, title: i.title, body: i.body, schedule: { at: i.at, allowWhileIdle: true }, extra: { tab: 'essen' } })) });
-  return true;
+  return replaceRange(300, 400, items.map(i => ({ ...i, extra: { tab: 'essen' } })), ask);
 }
 
 /** items: [{id, title, body, at: Date}] — ersetzt alle Garantie-Erinnerungen. */

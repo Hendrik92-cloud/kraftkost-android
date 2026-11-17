@@ -22,6 +22,7 @@ import { startSync, connected, pull } from './sync.js';
 import { startUpdates, initUpdateCard } from './update.js';
 import { pollJobs } from './claude.js';
 import { initMealRemind } from './mealremind.js';
+import { scheduleTraining, scheduleSupps } from './native.js';
 import { startHealth } from './health.js';
 import { LocalNotifications } from '@capacitor/local-notifications';
 
@@ -112,6 +113,14 @@ async function boot() {
   });
   pollJobs();
   startHealth();
+  // Erinnerungen bei jedem Start und Zurückkehren erneuern (14 Tage im Voraus, still ohne Nachfrage).
+  const refreshReminders = () => {
+    const st = db.settings; const by = k => st.supps.filter(x => x.when === k).map(x => x.name);
+    scheduleTraining(st.trainDays, st.trainTime, st.remind, false).catch(() => {});
+    scheduleSupps({ morgens: by('morgens'), abends: by('abends'), times: st.suppTimes, on: st.suppRemind }, false).catch(() => {});
+  };
+  refreshReminders();
+  if (isNative) App.addListener('resume', refreshReminders);
   // Tipp auf eine Mahlzeiten-Erinnerung öffnet direkt „Essen“.
   if (isNative) LocalNotifications.addListener('localNotificationActionPerformed', e => { const t = e.notification?.extra?.tab; if (t) showTab(t); });
   if (isNative) App.addListener('resume', () => pollJobs());
