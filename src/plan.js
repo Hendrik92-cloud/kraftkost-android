@@ -82,6 +82,8 @@ function renderPlanView() {
     <div class="bar"><div class="fill" style="width:${target ? Math.min(100, sum('kcal') / target * 100) : 0}%"></div></div></div>
   </div>
   <div class="list">${d.meals.map(mealHTML).join('')}</div>
+  ${d.date >= today() && d.meals.some(m => SHIFT.has(m.slot)) ? `<div class="card"><p class="small muted">Reste übrig oder keine Lust zu kochen? Dann rutscht das Abendessen ab ${d.date === today() ? 'heute' : fmtDay(d.date)} jeweils einen Tag nach hinten, der Plan wird einen Tag länger.</p>
+    <div class="actions"><button type="button" class="sm" id="mp-shift">Abendessen ab ${d.date === today() ? 'heute' : 'diesem Tag'} um einen Tag schieben</button></div></div>` : ''}
   <div class="actions"><button type="button" class="primary" id="mp-shop">Einkaufsliste erstellen</button><span class="hint" id="mp-shophint"></span></div>`;
 
   v.querySelectorAll('[data-mpd]').forEach(b => b.onclick = () => { sel = +b.dataset.mpd; editing = null; renderPlanView(); });
@@ -100,6 +102,31 @@ function renderPlanView() {
   });
   v.querySelectorAll('[data-swap]').forEach(b => b.onclick = () => swapMeal(d, +b.dataset.swap, b));
   $('#mp-shop').onclick = () => buildShopping(P);
+  const sh = $('#mp-shift');
+  if (sh) sh.onclick = () => {
+    if (!sh.classList.contains('armed')) { sh.classList.add('armed'); sh.textContent = 'Wirklich schieben? Nochmal tippen'; setTimeout(() => { if (sh.isConnected) renderPlanView(); }, 4000); return; }
+    shiftDinners(idx);
+  };
+}
+
+/* Gekochte Mahlzeiten, die beim Verschieben mitwandern (Frühstück und Snack bleiben, die sind jeden Tag gleich). */
+const SHIFT = new Set(['Abend', 'Nachtisch', 'Dessert']);
+
+/** Abendessen ab Tag idx einen Tag nach hinten; am Ende kommt ein Tag dazu, am Tag idx bleibt das Abendessen frei (Reste/Stulle). */
+function shiftDinners(idx) {
+  const P = db.mealplan; const days = P.days;
+  const last = days[days.length - 1];
+  const extra = { date: addDays(last.date, 1), training: db.settings.trainDays.includes(wdOf(addDays(last.date, 1))),
+    meals: last.meals.filter(m => !SHIFT.has(m.slot)).map(m => ({ ...m, id: uid(), locked: false })) };
+  days.push(extra);
+  for (let i = days.length - 1; i > idx; i--) {
+    const moving = days[i - 1].meals.filter(m => SHIFT.has(m.slot));
+    days[i].meals = days[i].meals.filter(m => !SHIFT.has(m.slot)).concat(moving);
+  }
+  days[idx].meals = days[idx].meals.filter(m => !SHIFT.has(m.slot));
+  days[idx].meals.push({ id: uid(), slot: 'Abend', name: 'Reste oder Stulle', kcal: 0, protein: 0, carbs: 0, fat: 0, ingredients: [], steps: '', time: '', locked: false });
+  P.shopStale = true; touchPlan(); save();
+  toast(`Verschoben. Der Plan geht jetzt bis ${fmtDay(extra.date)}.`);
 }
 
 async function swapMeal(day, i, btn) {
@@ -112,7 +139,7 @@ async function swapMeal(day, i, btn) {
       const r = await askJSON(`Ersetze in einem Familien-Wochenplan diese Mahlzeit durch eine andere: ${m.slot} am ${fmtDay(day.date)} (${day.training ? 'Trainingstag' : 'Ruhetag'}), bisher "${m.name}" mit ${de(m.kcal)} kcal und ${de(m.protein)} g Eiweiß für die Portion des Erwachsenen.
 Neue Mahlzeit: ähnliche Kalorien (±10 %) und Eiweiß, familien- und kindertauglich, nicht eines dieser Gerichte: ${others.join(', ')}.
 Haushalt: ${householdText()}. Aufwand: ${db.mealplan.effort || 'normal'}.${db.mealplan.pref ? ' Wünsche: ' + db.mealplan.pref + '.' : ''}
-Nährwerte für die Portion des Erwachsenen mit Anteil 1. Zutatenmengen für den ganzen Haushalt zusammen (${factorStr(Math.round(familyFactor() * 10) / 10)} Portionen).
+Nährwerte für die Portion des Erwachsenen mit Anteil 1. Zutatenmengen für den ganzen Haushalt zusammen (${factorStr(Math.round(familyFactor() * 10) / 10)} Portionen). Mengen realistisch, Nudeln oder Reis roh etwa 70 bis 90 g pro Portion 1.
 Form: {"slot":"${m.slot}","name":"…","kcal":600,"protein":40,"kohlenhydrate":60,"fett":18,"zeit":"25 min","zutaten":[{"name":"…","menge":"…"}],"zubereitung":"2 bis 3 Sätze","kind_tipp":"optional, kurz"}`, { maxTokens: 1500 });
       const nm = mapMeal(r); if (!nm.name) throw new Error();
       nm.slot = m.slot; nm.solo = m.solo; day.meals[i] = nm; db.mealplan.shopStale = true; touchPlan(); save(); toast('Getauscht: ' + nm.name);
@@ -192,6 +219,7 @@ Kindgerecht: nicht scharf, Gemüse gern versteckt oder als Rohkost dazu; bei Bed
 Reste und Vorkochen sinnvoll nutzen, damit der Einkauf klein bleibt. Wir kaufen bei Aldi und Kaufland.${offers ? '\nPlane andersherum: Schau zuerst, was diese Woche im Angebot ist, und zaubere daraus richtig leckere Gerichte. Die Hauptzutaten der Abendessen (Fleisch, Fisch, Gemüse) sollen möglichst aus den Angeboten kommen, Grundzutaten wie Reis, Nudeln oder Gewürze dürfen normal gekauft werden. Gib bei jeder Zutat aus dem Angebot "laden" an ("Aldi" oder "Kaufland").\nAngebote dieser Woche:\n' + offers : ''}${keep.length ? '\nDiese Mahlzeiten stehen fest und bleiben unverändert, plane drumherum: ' + keep.map(m => `${m.date} ${m.slot}: ${m.name}`).join('; ') : ''}
 Mahlzeiten, die nur der Erwachsene mit Portion 1 isst (zum Beispiel Frühstück oder Mittag zum Mitnehmen mit Zutaten, die andere nicht mögen), bekommen "nur_ich": true. Dann gelten die Zutatenmengen nur für ihn.
 Nährwerte je Mahlzeit für die Portion 1. Zutatenmengen sonst für den ganzen Haushalt (${factorStr(Math.round(familyFactor() * 10) / 10)} Portionen).
+Mengen realistisch und passend zu den Kalorien rechnen, damit nichts übrig bleibt: Nudeln, Reis oder Couscous roh etwa 70 bis 90 g pro Portion 1, Kartoffeln etwa 250 g, Fleisch oder Fisch etwa 150 bis 200 g. Für den Haushalt entsprechend hochrechnen und nicht auf ganze Packungen aufrunden; wenn eine Packung angebrochen wird, den Rest in einem späteren Gericht verwenden.
 ${bridge ? `Fasse außerdem alle Zutaten der Woche zu einer Einkaufsliste zusammen (gleiche addieren, auf Packungsgrößen runden, ohne Salz, Pfeffer, Gewürze, Öl, Mehl, Zucker) mit Kategorie aus: ${CATS.join(', ')}.\n` : ''}Form: {"art":"wochenplan","ziel_kcal":2500,"tage":[{"datum":"YYYY-MM-DD","mahlzeiten":[{"slot":"Frühstück","name":"…","kcal":550,"protein":35,"kohlenhydrate":60,"fett":15,"zeit":"10 min","zutaten":[{"name":"Haferflocken","menge":"200 g","laden":""}],"zubereitung":"2 bis 3 Sätze","kind_tipp":""}]}]${bridge ? ',"einkauf":[{"name":"Haferflocken","menge":"1 kg","kategorie":"Brot & Trockenware"}]' : ''}}`;
   if (bridge) { showBridge($('#mp-bridge'), prompt, r => applyMealPlan(r, ctx)); return; }
   await busy($('#mp-go'), null, '', async () => {
