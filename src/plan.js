@@ -4,7 +4,7 @@ import { $, $$, esc, de, num, uid, today, addDays, fmtDay, toast, WD, wdOf } fro
 import { askJSON, aiMsg, hasKey, registerJob, pendingJob } from './claude.js';
 import { showBridge } from './bridge.js';
 import { logMeal } from './essen.js';
-import { addShopItems, CATS, live, removeItem, guessCat, tripFor, isLasting, offersFresh, fetchOffers } from './einkauf.js';
+import { addShopItems, CATS, live, removeItem, guessCat, tripFor, isLasting, shopDays, offersFresh, fetchOffers } from './einkauf.js';
 import { sumAmounts, nameKey } from './shopmath.js';
 import { scheduleTraining } from './native.js';
 
@@ -84,7 +84,8 @@ function renderPlanView() {
   <div class="list">${d.meals.map(mealHTML).join('')}</div>
   ${d.date >= today() && d.meals.some(m => SHIFT.has(m.slot)) ? `<div class="card"><p class="small muted">Reste übrig oder keine Lust zu kochen? Dann rutscht das Abendessen ab ${d.date === today() ? 'heute' : fmtDay(d.date)} jeweils einen Tag nach hinten, der Plan wird einen Tag länger.</p>
     <div class="actions"><button type="button" class="sm" id="mp-shift">Abendessen ab ${d.date === today() ? 'heute' : 'diesem Tag'} um einen Tag schieben</button></div></div>` : ''}
-  <div class="actions"><button type="button" class="primary" id="mp-shop">Einkaufsliste erstellen</button><span class="hint" id="mp-shophint"></span></div>`;
+  <div class="actions"><button type="button" class="primary" id="mp-shop">Einkaufsliste erstellen</button><span class="hint" id="mp-shophint"></span></div>
+  <div id="mp-trips"></div>`;
 
   v.querySelectorAll('[data-mpd]').forEach(b => b.onclick = () => { sel = +b.dataset.mpd; editing = null; renderPlanView(); });
   v.querySelectorAll('[data-eat]').forEach(b => b.onclick = () => {
@@ -101,7 +102,7 @@ function renderPlanView() {
     editing = null; db.mealplan.shopStale = true; touchPlan(); save(); toast('Geändert');
   });
   v.querySelectorAll('[data-swap]').forEach(b => b.onclick = () => swapMeal(d, +b.dataset.swap, b));
-  $('#mp-shop').onclick = () => buildShopping(P);
+  $('#mp-shop').onclick = () => askTrips(P);
   const sh = $('#mp-shift');
   if (sh) sh.onclick = () => {
     if (!sh.classList.contains('armed')) { sh.classList.add('armed'); sh.textContent = 'Wirklich schieben? Nochmal tippen'; setTimeout(() => { if (sh.isConnected) renderPlanView(); }, 4000); return; }
@@ -147,6 +148,46 @@ Form: {"slot":"${m.slot}","name":"…","kcal":600,"protein":40,"kohlenhydrate":6
   });
 }
 
+/**
+ * Vor dem Erstellen der Liste fragen, wann eingekauft wird. Vorschlag: heute (bzw. Planstart)
+ * und ein zweiter Einkauf etwa drei Tage später, möglichst an einem der üblichen Einkaufstage.
+ */
+function suggestTrips(dates) {
+  const usual = shopDays(); const end = dates[dates.length - 1];
+  const out = [dates[0]];
+  for (;;) {
+    const prev = out[out.length - 1];
+    const cand = [addDays(prev, 3), addDays(prev, 4)].filter(d => d < end);
+    if (!cand.length) break;
+    out.push(cand.find(d => usual.includes(wdOf(d))) || cand[0]);
+  }
+  return out;
+}
+const daysBetween = (a, b) => Math.round((new Date(b + 'T12:00') - new Date(a + 'T12:00')) / 86400000);
+
+function askTrips(P) {
+  const start = P.days.some(d => d.date >= today()) ? today() : P.days[0].date;
+  const end = P.days[P.days.length - 1].date;
+  const dates = []; for (let d = start; d <= end; d = addDays(d, 1)) dates.push(d);
+  let chosen = (P.trips || []).filter(d => dates.includes(d));
+  if (!chosen.length || chosen[0] !== start) chosen = suggestTrips(dates);
+  const box = $('#mp-trips');
+  const draw = () => {
+    box.innerHTML = `<div class="card hero">
+      <h3>Wann geht ihr einkaufen?</h3>
+      <p class="small muted">Tipp die Tage an. Frisches kommt jeweils zum Einkauf vor dem Kochtag, Haltbares gleich beim ersten. Zweimal pro Woche heißt: weniger wegwerfen.</p>
+      <div class="days" style="grid-template-columns:repeat(${Math.min(dates.length, 8)},minmax(0,1fr))">${dates.map(d => `<button type="button" data-trd="${d}" aria-pressed="${chosen.includes(d)}"><small>${d === today() ? 'Heute' : WD[wdOf(d)]}</small>${Number(d.slice(8))}<small>&nbsp;</small></button>`).join('')}</div>
+      <p class="hint">${chosen.length ? chosen.map(d => d === today() ? 'heute' : fmtDay(d)).join(' und ') : 'Mindestens einen Tag wählen'}</p>
+      <div class="actions"><button type="button" class="primary" id="mp-trgo" ${chosen.length ? '' : 'disabled'}>Liste erstellen</button><button type="button" class="ghost" id="mp-trno">Abbrechen</button></div>
+    </div>`;
+    box.querySelectorAll('[data-trd]').forEach(b => b.onclick = () => { const d = b.dataset.trd; chosen = chosen.includes(d) ? chosen.filter(x => x !== d) : chosen.concat(d).sort(); draw(); });
+    $('#mp-trno').onclick = () => { box.innerHTML = ''; };
+    $('#mp-trgo').onclick = () => { P.trips = chosen; box.innerHTML = ''; buildShopping(P, chosen); };
+  };
+  draw();
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 /* Grundvorräte, die nicht auf die Liste sollen */
 const PANTRY = /^(salz|pfeffer|öl|olivenöl|rapsöl|essig|mehl|zucker|wasser|gewürze?|oregano|zimt|curry|paprikapulver|kreuzkümmel|sojasoße|brühe)$/i;
 
@@ -155,13 +196,15 @@ const PANTRY = /^(salz|pfeffer|öl|olivenöl|rapsöl|essig|mehl|zucker|wasser|ge
  * Frisches zum Einkauf vor dem Kochtag, Haltbares einmal beim ersten Einkauf. Mengen werden zusammengerechnet.
  * Eine frühere Liste aus dem Plan wird dabei ersetzt; Abgehaktes und selbst Hinzugefügtes bleibt.
  */
-function buildShopping(P) {
+function buildShopping(P, trips) {
   const from = P.days.some(d => d.date >= today()) ? today() : P.days[0].date;
   const days = P.days.filter(d => d.date >= from);
   if (!days.some(d => d.meals.some(m => m.ingredients.length))) { toast('Im Plan stehen keine Zutaten.'); return; }
   const catOf = new Map((P.shopping || []).map(x => [nameKey(x.name), x.cat]));
   // Einkäufe liegen nie in der Vergangenheit: Wer heute die Liste macht, kauft das Nächste heute ein.
-  const tripOf = date => { const t = tripFor(date); return t < today() ? today() : t; };
+  const tripOf = trips?.length
+    ? date => trips.filter(t => t <= date).pop() || trips[0]
+    : date => { const t = tripFor(date); return t < today() ? today() : t; };
   const first = tripOf(days[0].date);
   const groups = new Map();
   days.forEach(d => d.meals.forEach(m => m.ingredients.forEach(z => {
@@ -176,10 +219,10 @@ function buildShopping(P) {
   live().filter(x => !x.done && (x.src === 'plan' || (!x.src && planKeys.has(nameKey(x.name))))).forEach(removeItem);
   const items = [...groups.values()].sort((a, b) => a.trip.localeCompare(b.trip)).map(g => ({ name: g.name, amount: sumAmounts(g.amts), cat: g.cat, trip: g.trip, src: 'plan' }));
   addShopItems(items);
-  const trips = [...new Set(items.map(x => x.trip))];
-  const lbl = t => new Date(t + 'T12:00').toLocaleDateString('de-DE', { weekday: 'short' });
+  const used = [...new Set(items.map(x => x.trip))];
+  const lbl = t => t === today() ? 'heute' : new Date(t + 'T12:00').toLocaleDateString('de-DE', { weekday: 'short' });
   save();
-  toast(trips.length > 1 ? `Einkaufsliste erstellt: ${trips.map(t => `${lbl(t)} ${items.filter(x => x.trip === t).length}`).join(', ')} Sachen` : `${items.length} Sachen auf der Einkaufsliste`);
+  toast(used.length > 1 ? `Einkaufsliste erstellt: ${used.map(t => `${lbl(t)} ${items.filter(x => x.trip === t).length}`).join(', ')} Sachen` : `${items.length} Sachen auf der Einkaufsliste`);
 }
 
 async function createPlan(e) {
