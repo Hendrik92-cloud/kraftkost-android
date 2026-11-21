@@ -16,6 +16,12 @@ perl -0pi -e 's#(\s*</application>)#\n        <activity-alias android:name="View
 perl -0pi -e 's#</queries>#    <package android:name="com.google.android.apps.healthdata" />\n    </queries>#' "$MAN"
 sed -i -E "s/minSdkVersion = [0-9]+/minSdkVersion = 26/" android/variables.gradle
 
+# Immer mit demselben Schlüssel signieren (signing/debug.keystore aus dem Repo), sonst lässt
+# sich eine neue Version nicht über die alte installieren.
+GR=android/app/build.gradle
+perl -0pi -e 's#android \{#android {\n    signingConfigs {\n        kraft {\n            storeFile file("\$\{rootDir\}/../signing/debug.keystore")\n            storePassword "android"\n            keyAlias "androiddebugkey"\n            keyPassword "android"\n        }\n    }#' "$GR"
+perl -0pi -e 's#buildTypes \{#buildTypes {\n        debug {\n            signingConfig signingConfigs.kraft\n        }#' "$GR"
+
 RUN="${BUILD_NUMBER:-1}"
 GRADLE=android/app/build.gradle
 sed -i -E "s/versionCode [0-9]+/versionCode ${RUN}/; s/versionName \"[^\"]*\"/versionName \"1.0.${RUN}\"/" "$GRADLE"
