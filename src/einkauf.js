@@ -33,7 +33,7 @@ const CAT_HINTS = [
   ['Tiefkühl', /tiefkühl|^tk[- ]|gefror/i],
   ['Konserven & Vorrat', /thunfisch|dose|passierte|gehackte tomaten|kokosmilch|honig|kakao|brühe|marmelade|öl\b|essig|gewürz/i],
   ['Kühlregal', /milch|joghurt|quark|käse|butter|sahne|schmand|\beier?\b|skyr|frischkäse|mozzarella|feta|parmesan|tofu|gnocchi|pizzateig|kochschinken|aufschnitt/i],
-  ['Obst & Gemüse', /apfel|äpfel|banane|beere|tomate|gurke|paprika|salat|zwiebel|knoblauch|kartoffel|möhre|karotte|brokkoli|zucchini|champignon|pilz|obst|gemüse|zitrone|spinat|kohl|lauch|avocado|birne|traube|kürbis/i],
+  ['Obst & Gemüse', /apfel|äpfel|banane|beere|tomate|gurke|paprika|salat|zwiebel|knoblauch|kartoffel|möhre|karotte|brokkoli|zucchini|champignon|pilz|obst|gemüse|zitrone|spinat|kohl|lauch|avocado|birne|traube|kürbis|aubergine|mais|erbsen|süßkartoffel|rucola|frühlingszwiebel|sellerie|ingwer|petersilie|basilikum|schnittlauch|dill|kräuter|radieschen|fenchel|mango|orange|kiwi|ananas|blumenkohl|rosenkohl|spargel|rote bete/i],
   ['Fleisch & Fisch', /hähnchen|huhn|pute|rind|schwein|hack|fleisch|lachs|fisch|wurst|schinken|filet/i],
   ['Brot & Trockenware', /brot|brötchen|toast|nudel|pasta|penne|spaghetti|reis|hafer|müsli|mehl|linsen|couscous|bulgur|wrap/i],
   ['Getränke', /wasser|saft|kaffee|tee|cola|bier|getränk/i],
@@ -51,7 +51,9 @@ export function tripFor(date) {
   return addDays(date, -((wd - best + 7) % 7));
 }
 /** Was lange hält, wird einmal beim ersten Einkauf gekauft. */
-export const LASTING = new Set(['Brot & Trockenware', 'Konserven & Vorrat', 'Tiefkühl', 'Getränke', 'Drogerie & Haushalt', 'Sonstiges']);
+export const LASTING = new Set(['Brot & Trockenware', 'Konserven & Vorrat', 'Tiefkühl', 'Getränke', 'Drogerie & Haushalt']);
+/** Haltbar = beim ersten Einkauf mitnehmen. Brot und Unbekanntes gelten als frisch und kommen zum Einkauf vor dem Kochtag. */
+export const isLasting = (name, cat) => LASTING.has(cat) && !(cat === 'Brot & Trockenware' && /brot|brötchen|toast|wrap|baguette|brezel|tortilla/i.test(name));
 let tripSel = null;
 /** Hinzugefügtes landet im gerade gewählten Einkauf. */
 const curTrip = () => (tripSel && tripSel !== 'alle' ? tripSel : '');

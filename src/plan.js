@@ -4,7 +4,7 @@ import { $, $$, esc, de, num, uid, today, addDays, fmtDay, toast, WD, wdOf } fro
 import { askJSON, aiMsg, hasKey, registerJob, pendingJob } from './claude.js';
 import { showBridge } from './bridge.js';
 import { logMeal } from './essen.js';
-import { addShopItems, CATS, live, removeItem, guessCat, tripFor, LASTING, offersFresh, fetchOffers } from './einkauf.js';
+import { addShopItems, CATS, live, removeItem, guessCat, tripFor, isLasting, offersFresh, fetchOffers } from './einkauf.js';
 import { sumAmounts, nameKey } from './shopmath.js';
 import { scheduleTraining } from './native.js';
 
@@ -167,7 +167,7 @@ function buildShopping(P) {
   days.forEach(d => d.meals.forEach(m => m.ingredients.forEach(z => {
     if (PANTRY.test(z.name.trim())) return;
     const k = nameKey(z.name); const cat = catOf.get(k) || guessCat(z.name);
-    const trip = LASTING.has(cat) ? first : tripOf(d.date);
+    const trip = isLasting(z.name, cat) ? first : tripOf(d.date);
     const g = groups.get(trip + '|' + k) || { name: z.name, cat, trip, amts: [] };
     g.amts.push(z.amount); groups.set(trip + '|' + k, g);
   })));
