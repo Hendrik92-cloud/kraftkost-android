@@ -213,6 +213,7 @@ function renderSettings() {
     const next = cur.includes(i) ? cur.filter(x => x !== i) : cur.concat(i).sort((a, c) => a - c);
     if (!next.length) { toast('Mindestens ein Einkaufstag'); return; }
     s.shopDays = next; save(); toast('Gilt ab der nächsten Einkaufsliste aus dem Wochenplan');
+    $$('[data-shd]').forEach(x => x.setAttribute('aria-pressed', next.includes(+x.dataset.shd)));
   });
   renderHousehold(); renderFamily(); renderCompanies();
   $('#nokey').hidden = !!s.apiKey || !!s.keyNoticeSeen;

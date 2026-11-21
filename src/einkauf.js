@@ -67,9 +67,16 @@ function renderShop() {
   // Einkaufs-Auswahl: der nächste anstehende Einkauf, sonst der letzte
   const trips = [...new Set(all.map(x => x.trip).filter(Boolean))].sort();
   if (tripSel !== 'alle' && !trips.includes(tripSel)) tripSel = trips.find(t => t >= today()) || trips[trips.length - 1] || null;
-  $('#s-trips').hidden = trips.length < 2;
-  $('#s-trips').innerHTML = trips.map(t => `<button type="button" data-trip="${t}" aria-pressed="${tripSel === t}">${tripLabel(t)} · ${all.filter(x => x.trip === t && !x.done).length}</button>`).join('') + `<button type="button" data-trip="alle" aria-pressed="${tripSel === 'alle'}">Alle</button>`;
+  $('#s-trips').hidden = trips.length < 2 && !(trips[0] && trips[0] < today());
+  $('#s-trips').innerHTML = trips.map(t => `<button type="button" data-trip="${t}" aria-pressed="${tripSel === t}">${t === today() ? 'Heute' : tripLabel(t)} · ${all.filter(x => x.trip === t && !x.done).length}</button>`).join('') + `<button type="button" data-trip="alle" aria-pressed="${tripSel === 'alle'}">Alle</button>`
+    + (tripSel && tripSel !== 'alle' && tripSel !== today() && all.some(x => !x.done && x.trip === tripSel) ? `<button type="button" id="s-today">Auf heute legen</button>` : '');
   $$('[data-trip]').forEach(b => b.onclick = () => { tripSel = b.dataset.trip; renderShop(); });
+  const mv = $('#s-today');
+  if (mv) mv.onclick = () => {
+    const xs = all.filter(x => !x.done && x.trip === tripSel);
+    xs.forEach(x => { x.trip = today(); touch(x); });
+    tripSel = today(); save(); renderShop(); toast(`${xs.length} ${xs.length === 1 ? 'Sache' : 'Sachen'} auf heute gelegt`);
+  };
   const it = tripSel && tripSel !== 'alle' ? all.filter(x => !x.trip || x.trip === tripSel) : all;
   const box = $('#s-list');
   if (!it.length) { box.innerHTML = '<div class="empty">Die Liste ist leer. Sprich oder tipp oben etwas ein, oder lass sie aus dem Wochenplan erstellen.</div>'; }

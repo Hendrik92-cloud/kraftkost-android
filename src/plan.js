@@ -160,12 +160,14 @@ function buildShopping(P) {
   const days = P.days.filter(d => d.date >= from);
   if (!days.some(d => d.meals.some(m => m.ingredients.length))) { toast('Im Plan stehen keine Zutaten.'); return; }
   const catOf = new Map((P.shopping || []).map(x => [nameKey(x.name), x.cat]));
-  const first = tripFor(days[0].date);
+  // Einkäufe liegen nie in der Vergangenheit: Wer heute die Liste macht, kauft das Nächste heute ein.
+  const tripOf = date => { const t = tripFor(date); return t < today() ? today() : t; };
+  const first = tripOf(days[0].date);
   const groups = new Map();
   days.forEach(d => d.meals.forEach(m => m.ingredients.forEach(z => {
     if (PANTRY.test(z.name.trim())) return;
     const k = nameKey(z.name); const cat = catOf.get(k) || guessCat(z.name);
-    const trip = LASTING.has(cat) ? first : tripFor(d.date);
+    const trip = LASTING.has(cat) ? first : tripOf(d.date);
     const g = groups.get(trip + '|' + k) || { name: z.name, cat, trip, amts: [] };
     g.amts.push(z.amount); groups.set(trip + '|' + k, g);
   })));
